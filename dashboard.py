@@ -814,7 +814,7 @@ with st.sidebar:
     st.divider()
     page = st.radio(
         "Navigation",
-        ["▶  Run Benchmarks", "📈  View Results", "🔁  Aggregated Runs", "⚖  Compare", "🗂  History"],
+        ["▶  Run Benchmarks", "📈  View Results", "🔁  Aggregated Runs", "🗂  History"],
         label_visibility="collapsed",
     )
     st.divider()
@@ -828,5 +828,4 @@ with st.sidebar:
 if   page == "▶  Run Benchmarks":  page_run()
 elif page == "📈  View Results":    page_results()
 elif page == "🔁  Aggregated Runs": page_aggregated()
-elif page == "⚖  Compare":         page_compare()
 elif page == "🗂  History":         page_history()
