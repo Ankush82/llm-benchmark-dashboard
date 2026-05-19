@@ -355,10 +355,8 @@ def page_run():
 
     # ── Live output (always shown while running or after completion) ──────────
     if st.session_state.bench_output:
-        if st.session_state.bench_running:
-            st.warning(f"⏳  Running: **{st.session_state.bench_name}** — you can switch tabs and come back anytime.")
-        else:
-            st.success(f"✅  Finished: **{st.session_state.bench_name}** — check the Results page for the report.")
+        if not st.session_state.bench_running:
+            st.success(f"✅  Finished: **{st.session_state.bench_name}**")
 
         # Show last 60 lines so the box doesn't grow forever while scrolling live
         visible = st.session_state.bench_output[-60:]
