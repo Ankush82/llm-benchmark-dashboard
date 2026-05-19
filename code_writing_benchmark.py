@@ -36,7 +36,7 @@ STANDARD_MODELS = {
 }
 
 THINKING_MODELS = {
-    "Phi-4-Reasoning":    "microsoft/phi-4-reasoning-plus:free",
+    "Phi-4-Reasoning":    "microsoft/phi-4-reasoning:free",
     "Nemotron-Reasoning": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
 }
 

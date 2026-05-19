@@ -387,7 +387,6 @@ def page_run():
         if not st.session_state.bench_running:
             if st.button("🗑  Clear output"):
                 st.session_state.bench_output = []
-                st.rerun()
 
     # ── Auto-refresh every second while running ───────────────────────────────
     if st.session_state.bench_running:
