@@ -10,9 +10,9 @@ Usage:
 import re
 import os
 import sys
+import time
 import subprocess
 import threading
-import queue
 from pathlib import Path
 from datetime import datetime
 
@@ -287,19 +287,20 @@ def build_command(benchmark_name, consistency_n=3):
     return cmd
 
 
-def stream_process(cmd, output_queue):
+def stream_to_session(cmd):
+    """Run process in a background thread, appending lines directly to session_state."""
     try:
         proc = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             text=True, bufsize=1, cwd=str(BENCH_DIR),
         )
         for line in proc.stdout:
-            output_queue.put(line)
+            st.session_state.bench_output.append(line)
         proc.wait()
-        output_queue.put(None)  # sentinel
     except Exception as e:
-        output_queue.put(f"ERROR: {e}\n")
-        output_queue.put(None)
+        st.session_state.bench_output.append(f"\nERROR: {e}\n")
+    finally:
+        st.session_state.bench_running = False
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  PAGE: RUN BENCHMARKS
@@ -308,15 +309,30 @@ def stream_process(cmd, output_queue):
 def page_run():
     st.header("Run Benchmarks")
 
+    # ── Persistent state init ─────────────────────────────────────────────────
+    if "bench_running" not in st.session_state:
+        st.session_state.bench_running = False
+    if "bench_output"  not in st.session_state:
+        st.session_state.bench_output  = []
+    if "bench_name"    not in st.session_state:
+        st.session_state.bench_name    = ""
+
+    # ── Controls (disabled while running) ────────────────────────────────────
     col1, col2 = st.columns([2, 1])
     with col1:
-        benchmark = st.selectbox("Select benchmark", list(BENCHMARKS.keys()))
+        benchmark = st.selectbox(
+            "Select benchmark", list(BENCHMARKS.keys()),
+            disabled=st.session_state.bench_running,
+        )
     with col2:
         consistency_n = 1
         if "Consistency" in benchmark:
-            consistency_n = st.number_input("Runs per problem", min_value=2, max_value=10, value=3)
+            consistency_n = st.number_input(
+                "Runs per problem", min_value=2, max_value=10, value=3,
+                disabled=st.session_state.bench_running,
+            )
 
-    cfg = BENCHMARKS[benchmark]
+    cfg         = BENCHMARKS[benchmark]
     script_path = BENCH_DIR / cfg["script"]
 
     if not script_path.exists():
@@ -325,34 +341,42 @@ def page_run():
 
     st.caption(f"Script: `{cfg['script']}`  •  Mode: `{', '.join(cfg['modes'])}`")
 
-    if st.button("▶  Run Benchmark", type="primary", use_container_width=True):
-        cmd = build_command(benchmark, consistency_n)
-        st.info(f"Running: `{' '.join(cmd)}`")
+    # ── Start button ──────────────────────────────────────────────────────────
+    if st.session_state.bench_running:
+        st.button("⏳  Running…", disabled=True, use_container_width=True)
+    else:
+        if st.button("▶  Run Benchmark", type="primary", use_container_width=True):
+            cmd = build_command(benchmark, consistency_n)
+            st.session_state.bench_output  = [f"$ {' '.join(cmd)}\n\n"]
+            st.session_state.bench_running = True
+            st.session_state.bench_name    = benchmark
+            threading.Thread(target=stream_to_session, args=(cmd,), daemon=True).start()
+            st.rerun()
 
-        output_box  = st.empty()
-        status_box  = st.empty()
-        full_output = []
+    # ── Live output (always shown while running or after completion) ──────────
+    if st.session_state.bench_output:
+        if st.session_state.bench_running:
+            st.warning(f"⏳  Running: **{st.session_state.bench_name}** — you can switch tabs and come back anytime.")
+        else:
+            st.success(f"✅  Finished: **{st.session_state.bench_name}** — check the Results page for the report.")
 
-        q = queue.Queue()
-        thread = threading.Thread(target=stream_process, args=(cmd, q), daemon=True)
-        thread.start()
+        # Show last 60 lines so the box doesn't grow forever while scrolling live
+        visible = st.session_state.bench_output[-60:]
+        st.code("".join(visible), language="text")
 
-        status_box.warning("Running…")
-        while True:
-            try:
-                line = q.get(timeout=0.1)
-            except queue.Empty:
-                continue
-            if line is None:
-                break
-            full_output.append(line)
-            # Show last 40 lines live
-            visible = full_output[-40:]
-            output_box.code("".join(visible), language="text")
+        col_a, col_b = st.columns([1, 1])
+        with col_a:
+            if not st.session_state.bench_running:
+                if st.button("🗑  Clear output"):
+                    st.session_state.bench_output = []
+                    st.rerun()
+        with col_b:
+            st.caption(f"{len(st.session_state.bench_output)} lines captured")
 
-        thread.join()
-        status_box.success("Finished! Refresh the Results page to see the new report.")
-        output_box.code("".join(full_output), language="text")
+    # ── Auto-refresh while running ────────────────────────────────────────────
+    if st.session_state.bench_running:
+        time.sleep(1.5)
+        st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  PAGE: VIEW RESULTS
