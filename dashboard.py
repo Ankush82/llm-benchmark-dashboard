@@ -371,16 +371,15 @@ def page_run():
             st.session_state.bench_running = True
             st.session_state.bench_name    = benchmark
             threading.Thread(target=stream_to_queue, args=(cmd, q), daemon=True).start()
-            st.rerun()
+            # Do NOT call st.rerun() here — let Streamlit's natural rerun continue so
+            # st.code() below renders immediately with the cleared output in this pass.
 
     # ── Output display — always rendered at fixed position so reruns update in-place
     if not st.session_state.bench_running and st.session_state.bench_output:
         st.success(f"✅  Finished: **{st.session_state.bench_name}**")
 
-    st.code(
-        "".join(st.session_state.bench_output[-80:]) if st.session_state.bench_output else "",
-        language="text",
-    )
+    output_text = "".join(st.session_state.bench_output[-80:]) if st.session_state.bench_output else ""
+    st.code(output_text, language="text")
 
     if not st.session_state.bench_running and st.session_state.bench_output:
         if st.button("🗑  Clear output"):

@@ -22,9 +22,9 @@ from datasets import load_dataset
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
  
 MODELS = {
-    "Phi-4":            "microsoft/phi-4",
-    "Gemma-3":          "nvidia/nemotron-3-super-120b-a12b",
-    "Mistral-Nemotron": "mistralai/ministral-14b-2512",
+    "Phi-4":     "microsoft/phi-4",
+    "Nemotron":  "nvidia/nemotron-3-super-120b-a12b",
+    "Ministral": "mistralai/ministral-14b-2512",
 }
  
 NUM_QUESTIONS = 10
