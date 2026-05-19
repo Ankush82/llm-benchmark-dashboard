@@ -373,20 +373,18 @@ def page_run():
             threading.Thread(target=stream_to_queue, args=(cmd, q), daemon=True).start()
             st.rerun()
 
-    # ── Output display ────────────────────────────────────────────────────────
-    if st.session_state.bench_output:
-        if not st.session_state.bench_running:
-            st.success(f"✅  Finished: **{st.session_state.bench_name}**")
+    # ── Output display — always rendered at fixed position so reruns update in-place
+    if not st.session_state.bench_running and st.session_state.bench_output:
+        st.success(f"✅  Finished: **{st.session_state.bench_name}**")
 
-        output_placeholder = st.empty()
-        output_placeholder.code(
-            "".join(st.session_state.bench_output[-80:]),
-            language="text",
-        )
+    st.code(
+        "".join(st.session_state.bench_output[-80:]) if st.session_state.bench_output else "",
+        language="text",
+    )
 
-        if not st.session_state.bench_running:
-            if st.button("🗑  Clear output"):
-                st.session_state.bench_output = []
+    if not st.session_state.bench_running and st.session_state.bench_output:
+        if st.button("🗑  Clear output"):
+            st.session_state.bench_output = []
 
     # ── Auto-refresh every second while running ───────────────────────────────
     if st.session_state.bench_running:
