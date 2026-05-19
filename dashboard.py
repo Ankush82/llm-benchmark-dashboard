@@ -281,7 +281,7 @@ def radar_chart(df, score_cols, title):
 def build_command(benchmark_name, consistency_n=3):
     cfg = BENCHMARKS[benchmark_name]
     script = str(BENCH_DIR / cfg["script"])
-    cmd = [sys.executable, script]
+    cmd = [sys.executable, "-u", script]  # -u = unbuffered stdout, lines appear immediately
     modes = cfg["modes"]
     if "thinking"     in modes: cmd.append("--thinking")
     if "consistency"  in modes: cmd += ["--consistency", str(consistency_n)]
@@ -291,9 +291,11 @@ def build_command(benchmark_name, consistency_n=3):
 def stream_to_queue(cmd, q):
     """Run process in background thread, putting lines into a queue."""
     try:
+        env = os.environ.copy()
+        env["PYTHONUNBUFFERED"] = "1"
         proc = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-            text=True, bufsize=1, cwd=str(BENCH_DIR),
+            text=True, bufsize=1, cwd=str(BENCH_DIR), env=env,
         )
         for line in proc.stdout:
             q.put(line)
