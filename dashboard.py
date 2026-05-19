@@ -526,6 +526,248 @@ def page_compare():
         st.plotly_chart(fig, use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
+#  PAGE: AGGREGATED RUNS
+# ══════════════════════════════════════════════════════════════════════════════
+
+BTYPE_LABELS = {
+    "gsm8k":              "GSM8K Math",
+    "mt_bench":           "MT-Bench Chat",
+    "reasoning_recovery": "Reasoning Recovery",
+    "tool_calling":       "Tool Calling",
+    "code_writing":       "Code Writing — Standard",
+    "code_thinking":      "Code Writing — Thinking",
+    "code_consistency":   "Code Writing — Consistency",
+}
+
+def collect_runs(btype):
+    """Return list of (datetime, df, score_col) sorted oldest→newest for a benchmark type."""
+    files = sorted(RESULTS_DIR.glob("*.txt"))
+    runs  = []
+    for f in files:
+        if detect_benchmark_type(f.name) != btype:
+            continue
+        result, _, _ = parse_report(f)
+        if result is None:
+            continue
+        df, score_col, _ = result
+        if df is None or df.empty or "Model" not in df.columns:
+            continue
+        mtime = datetime.fromtimestamp(f.stat().st_mtime)
+        runs.append({"file": f, "time": mtime, "df": df, "score_col": score_col})
+    return runs
+
+
+def build_aggregated_df(runs, score_col):
+    """Combine all runs into a long-form DataFrame with Run #, Model, Score, Date."""
+    rows = []
+    for i, run in enumerate(runs, 1):
+        for _, row in run["df"].iterrows():
+            if score_col in run["df"].columns:
+                rows.append({
+                    "Run":   i,
+                    "Date":  run["time"].strftime("%m/%d %H:%M"),
+                    "Model": row["Model"],
+                    "Score": row[score_col],
+                    "File":  run["file"].name,
+                })
+    return pd.DataFrame(rows)
+
+
+def page_aggregated():
+    st.header("Aggregated Runs")
+    st.caption("Select a benchmark type to view trends and statistics across all saved runs.")
+
+    files = list(RESULTS_DIR.glob("*.txt"))
+    if not files:
+        st.info("No results yet. Run a benchmark first.")
+        return
+
+    # Find which benchmark types have ≥1 file
+    available = {}
+    for f in files:
+        bt = detect_benchmark_type(f.name)
+        available[bt] = available.get(bt, 0) + 1
+
+    type_options = {
+        BTYPE_LABELS.get(bt, bt): bt
+        for bt, count in sorted(available.items(), key=lambda x: -x[1])
+    }
+
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        chosen_label = st.selectbox("Benchmark type", list(type_options.keys()))
+    chosen_btype = type_options[chosen_label]
+
+    runs = collect_runs(chosen_btype)
+    with col2:
+        st.metric("Total runs found", len(runs))
+
+    if not runs:
+        st.warning("No parseable result files found for this benchmark type.")
+        return
+
+    score_col = runs[0]["score_col"]
+    agg_df    = build_aggregated_df(runs, score_col)
+    models    = agg_df["Model"].unique().tolist()
+
+    if agg_df.empty:
+        st.warning("Could not extract scores from these files.")
+        return
+
+    # ── Summary metrics ────────────────────────────────────────────────────────
+    st.subheader("Overall Statistics Across All Runs")
+    cols = st.columns(len(models))
+    for i, model in enumerate(models):
+        model_df = agg_df[agg_df["Model"] == model]["Score"]
+        mean = model_df.mean()
+        std  = model_df.std() if len(model_df) > 1 else 0
+        best = model_df.max()
+        with cols[i]:
+            st.metric(model, f"{mean:.2f}", delta=f"best {best:.1f}  σ {std:.2f}")
+
+    st.divider()
+
+    # ── Score trend over runs ─────────────────────────────────────────────────
+    st.subheader(f"Score Trend — {score_col} per Run")
+    fig_line = go.Figure()
+    for model in models:
+        mdf = agg_df[agg_df["Model"] == model].sort_values("Run")
+        fig_line.add_trace(go.Scatter(
+            x=mdf["Run"],
+            y=mdf["Score"],
+            mode="lines+markers",
+            name=model,
+            line_color=model_color(model),
+            text=mdf["Date"],
+            hovertemplate="Run %{x}<br>%{y:.2f}<br>%{text}<extra></extra>",
+            marker=dict(size=8),
+        ))
+    fig_line.update_layout(
+        xaxis_title="Run #",
+        yaxis_title=score_col,
+        xaxis=dict(tickmode="linear", dtick=1),
+        plot_bgcolor="#0e1117",
+        paper_bgcolor="#0e1117",
+        font_color="#fafafa",
+        height=380,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02),
+    )
+    st.plotly_chart(fig_line, use_container_width=True)
+
+    # ── Distribution box plot ─────────────────────────────────────────────────
+    col_box, col_bar = st.columns(2)
+
+    with col_box:
+        st.subheader("Score Distribution")
+        fig_box = go.Figure()
+        for model in models:
+            mdf = agg_df[agg_df["Model"] == model]
+            fig_box.add_trace(go.Box(
+                y=mdf["Score"],
+                name=model,
+                marker_color=model_color(model),
+                boxmean="sd",
+                boxpoints="all",
+                jitter=0.4,
+                pointpos=0,
+            ))
+        fig_box.update_layout(
+            yaxis_title=score_col,
+            plot_bgcolor="#0e1117",
+            paper_bgcolor="#0e1117",
+            font_color="#fafafa",
+            height=380,
+            showlegend=False,
+        )
+        st.plotly_chart(fig_box, use_container_width=True)
+
+    with col_bar:
+        st.subheader("Mean ± Std Dev")
+        means, stds, names, colors = [], [], [], []
+        for model in models:
+            mdf = agg_df[agg_df["Model"] == model]["Score"]
+            means.append(mdf.mean())
+            stds.append(mdf.std() if len(mdf) > 1 else 0)
+            names.append(model)
+            colors.append(model_color(model))
+
+        fig_err = go.Figure(go.Bar(
+            x=names,
+            y=means,
+            error_y=dict(type="data", array=stds, visible=True),
+            marker_color=colors,
+            text=[f"{m:.2f}" for m in means],
+            textposition="outside",
+        ))
+        fig_err.update_layout(
+            yaxis_title=f"Mean {score_col}",
+            plot_bgcolor="#0e1117",
+            paper_bgcolor="#0e1117",
+            font_color="#fafafa",
+            height=380,
+        )
+        st.plotly_chart(fig_err, use_container_width=True)
+
+    # ── Best vs worst run ─────────────────────────────────────────────────────
+    st.subheader("Best vs Worst Run (by average score across models)")
+    run_avgs = agg_df.groupby("Run")["Score"].mean().reset_index()
+    run_avgs.columns = ["Run", "Avg Score"]
+
+    if len(run_avgs) >= 2:
+        best_run  = run_avgs.loc[run_avgs["Avg Score"].idxmax(), "Run"]
+        worst_run = run_avgs.loc[run_avgs["Avg Score"].idxmin(), "Run"]
+        best_file  = runs[int(best_run)  - 1]["file"].name
+        worst_file = runs[int(worst_run) - 1]["file"].name
+
+        c1, c2 = st.columns(2)
+        with c1:
+            st.success(f"**Best run: #{int(best_run)}**  avg={run_avgs.loc[run_avgs['Run']==best_run,'Avg Score'].values[0]:.2f}\n\n`{best_file}`")
+        with c2:
+            st.error(f"**Worst run: #{int(worst_run)}**  avg={run_avgs.loc[run_avgs['Run']==worst_run,'Avg Score'].values[0]:.2f}\n\n`{worst_file}`")
+
+    # ── Per-run scores table ───────────────────────────────────────────────────
+    st.subheader("All Runs — Score Table")
+    pivot = agg_df.pivot_table(index=["Run","Date"], columns="Model", values="Score").reset_index()
+    pivot["Avg"] = pivot[models].mean(axis=1).round(2)
+    pivot = pivot.sort_values("Run")
+    st.dataframe(pivot.set_index("Run"), use_container_width=True)
+
+    # ── Run-over-run delta ─────────────────────────────────────────────────────
+    if len(runs) >= 2:
+        st.subheader("Run-over-Run Change")
+        fig_delta = go.Figure()
+        for model in models:
+            mdf = agg_df[agg_df["Model"] == model].sort_values("Run")
+            deltas = mdf["Score"].diff().fillna(0).tolist()
+            runs_x = mdf["Run"].tolist()
+            colors_delta = ["#76B900" if d >= 0 else "#E84040" for d in deltas[1:]]
+            fig_delta.add_trace(go.Bar(
+                x=runs_x[1:],
+                y=deltas[1:],
+                name=model,
+                marker_color=colors_delta,
+                showlegend=True,
+            ))
+        fig_delta.add_hline(y=0, line_dash="dash", line_color="#888")
+        fig_delta.update_layout(
+            xaxis_title="Run #",
+            yaxis_title=f"Δ {score_col}",
+            xaxis=dict(tickmode="linear", dtick=1),
+            barmode="group",
+            plot_bgcolor="#0e1117",
+            paper_bgcolor="#0e1117",
+            font_color="#fafafa",
+            height=320,
+        )
+        st.plotly_chart(fig_delta, use_container_width=True)
+
+    # ── File list ─────────────────────────────────────────────────────────────
+    with st.expander(f"Show all {len(runs)} files included"):
+        for i, run in enumerate(runs, 1):
+            st.caption(f"Run {i} — {run['time'].strftime('%Y-%m-%d %H:%M')} — `{run['file'].name}`")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 #  PAGE: HISTORY
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -572,7 +814,7 @@ with st.sidebar:
     st.divider()
     page = st.radio(
         "Navigation",
-        ["▶  Run Benchmarks", "📈  View Results", "⚖  Compare", "🗂  History"],
+        ["▶  Run Benchmarks", "📈  View Results", "🔁  Aggregated Runs", "⚖  Compare", "🗂  History"],
         label_visibility="collapsed",
     )
     st.divider()
@@ -583,7 +825,8 @@ with st.sidebar:
         mtime  = datetime.fromtimestamp(latest.stat().st_mtime).strftime("%b %d, %H:%M")
         st.caption(f"Latest: {latest.name[:30]}…\n{mtime}")
 
-if   page == "▶  Run Benchmarks": page_run()
-elif page == "📈  View Results":   page_results()
-elif page == "⚖  Compare":        page_compare()
-elif page == "🗂  History":        page_history()
+if   page == "▶  Run Benchmarks":  page_run()
+elif page == "📈  View Results":    page_results()
+elif page == "🔁  Aggregated Runs": page_aggregated()
+elif page == "⚖  Compare":         page_compare()
+elif page == "🗂  History":         page_history()
