@@ -11,6 +11,7 @@ import re
 import os
 import sys
 import time
+import queue as queue_module
 import subprocess
 import threading
 from pathlib import Path
@@ -287,20 +288,20 @@ def build_command(benchmark_name, consistency_n=3):
     return cmd
 
 
-def stream_to_session(cmd):
-    """Run process in a background thread, appending lines directly to session_state."""
+def stream_to_queue(cmd, q):
+    """Run process in background thread, putting lines into a queue."""
     try:
         proc = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             text=True, bufsize=1, cwd=str(BENCH_DIR),
         )
         for line in proc.stdout:
-            st.session_state.bench_output.append(line)
+            q.put(line)
         proc.wait()
     except Exception as e:
-        st.session_state.bench_output.append(f"\nERROR: {e}\n")
+        q.put(f"\nERROR: {e}\n")
     finally:
-        st.session_state.bench_running = False
+        q.put(None)  # sentinel — signals completion
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  PAGE: RUN BENCHMARKS
@@ -310,14 +311,30 @@ def page_run():
     st.header("Run Benchmarks")
 
     # ── Persistent state init ─────────────────────────────────────────────────
-    if "bench_running" not in st.session_state:
-        st.session_state.bench_running = False
-    if "bench_output"  not in st.session_state:
-        st.session_state.bench_output  = []
-    if "bench_name"    not in st.session_state:
-        st.session_state.bench_name    = ""
+    for key, default in [
+        ("bench_running", False),
+        ("bench_output",  []),
+        ("bench_name",    ""),
+        ("bench_queue",   None),
+    ]:
+        if key not in st.session_state:
+            st.session_state[key] = default
 
-    # ── Controls (disabled while running) ────────────────────────────────────
+    # ── Drain queue → output list (safe: only main thread touches session_state)
+    q = st.session_state.bench_queue
+    if q is not None:
+        while True:
+            try:
+                line = q.get_nowait()
+            except queue_module.Empty:
+                break
+            if line is None:                         # sentinel: process finished
+                st.session_state.bench_running = False
+                st.session_state.bench_queue   = None
+                break
+            st.session_state.bench_output.append(line)
+
+    # ── Controls ──────────────────────────────────────────────────────────────
     col1, col2 = st.columns([2, 1])
     with col1:
         benchmark = st.selectbox(
@@ -334,46 +351,45 @@ def page_run():
 
     cfg         = BENCHMARKS[benchmark]
     script_path = BENCH_DIR / cfg["script"]
-
     if not script_path.exists():
         st.error(f"Script not found: {cfg['script']}")
         return
 
     st.caption(f"Script: `{cfg['script']}`  •  Mode: `{', '.join(cfg['modes'])}`")
 
-    # ── Start button ──────────────────────────────────────────────────────────
+    # ── Start / running button ────────────────────────────────────────────────
     if st.session_state.bench_running:
         st.button("⏳  Running…", disabled=True, use_container_width=True)
     else:
         if st.button("▶  Run Benchmark", type="primary", use_container_width=True):
             cmd = build_command(benchmark, consistency_n)
+            q   = queue_module.Queue()
+            st.session_state.bench_queue   = q
             st.session_state.bench_output  = [f"$ {' '.join(cmd)}\n\n"]
             st.session_state.bench_running = True
             st.session_state.bench_name    = benchmark
-            threading.Thread(target=stream_to_session, args=(cmd,), daemon=True).start()
+            threading.Thread(target=stream_to_queue, args=(cmd, q), daemon=True).start()
             st.rerun()
 
-    # ── Live output (always shown while running or after completion) ──────────
+    # ── Output display ────────────────────────────────────────────────────────
     if st.session_state.bench_output:
         if not st.session_state.bench_running:
             st.success(f"✅  Finished: **{st.session_state.bench_name}**")
 
-        # Show last 60 lines so the box doesn't grow forever while scrolling live
-        visible = st.session_state.bench_output[-60:]
-        st.code("".join(visible), language="text")
+        output_placeholder = st.empty()
+        output_placeholder.code(
+            "".join(st.session_state.bench_output[-80:]),
+            language="text",
+        )
 
-        col_a, col_b = st.columns([1, 1])
-        with col_a:
-            if not st.session_state.bench_running:
-                if st.button("🗑  Clear output"):
-                    st.session_state.bench_output = []
-                    st.rerun()
-        with col_b:
-            st.caption(f"{len(st.session_state.bench_output)} lines captured")
+        if not st.session_state.bench_running:
+            if st.button("🗑  Clear output"):
+                st.session_state.bench_output = []
+                st.rerun()
 
-    # ── Auto-refresh while running ────────────────────────────────────────────
+    # ── Auto-refresh every second while running ───────────────────────────────
     if st.session_state.bench_running:
-        time.sleep(1.5)
+        time.sleep(1.0)
         st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════
