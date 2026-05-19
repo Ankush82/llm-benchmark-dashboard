@@ -1,0 +1,931 @@
+========================================================================
+  TOOL CALLING BENCHMARK REPORT
+========================================================================
+  Date          : 2026-05-19 13:45:27
+  Models tested : Phi-4, Nemotron, Ministral
+  Tools defined : 12
+  Scenarios     : 20
+  Scoring       : 0-3 per scenario (max 60 total)
+  Scoring rubric:
+      3 = Correct tool(s) + correct params
+      2 = Correct tool(s) + minor param gaps
+      1 = Partially correct (missing tool or wrong params)
+      0 = Wrong tool / no tool called / unnecessary call
+========================================================================
+
+OVERALL SCORES
+------------------------------------------------------------------------
+  Model                   Score       %   Perfect   Zero   Avg Tokens
+------------------------------------------------------------------------
+  Phi-4                   0/60      0.0%        0/20    20/20           0
+  Nemotron               49/60     81.7%       15/20     1/20         100
+  Ministral              54/60     90.0%       18/20     2/20        1531
+------------------------------------------------------------------------
+
+TOOL SELECTION ACCURACY
+------------------------------------------------------------------------
+  Model                Correct   Partial   Wrong   Unnecessary   Param Acc
+------------------------------------------------------------------------
+  Phi-4                     0/20        0/20     20/20            0/20        0.0%
+  Nemotron                 15/20        4/20      1/20            0/20       87.5%
+  Ministral                18/20        0/20      2/20            0/20       90.0%
+------------------------------------------------------------------------
+
+SCORES BY DIFFICULTY
+------------------------------------------------------------------------
+  Difficulty             Phi-4      Nemotron     Ministral
+------------------------------------------------------------------------
+  Easy                    0.0%        100.0%        100.0%
+  Medium                  0.0%         87.5%         87.5%
+  Hard                    0.0%         46.7%         80.0%
+------------------------------------------------------------------------
+
+SCORES BY CATEGORY
+------------------------------------------------------------------------
+  Category                                       Phi-4      Nemotron     Ministral
+------------------------------------------------------------------------
+  Single Tool - Easy                              0.0%        100.0%        100.0%  ← Nemotron
+  Single Tool - Parameter Extraction              0.0%        100.0%        100.0%  ← Nemotron
+  Multi-Tool Chain                                0.0%         33.3%         75.0%  ← Ministral
+  No Tool Needed                                  0.0%        100.0%        100.0%  ← Nemotron
+  Tool Selection Trap                             0.0%         66.7%         66.7%  ← Nemotron
+------------------------------------------------------------------------
+
+SCENARIO-BY-SCENARIO RESULTS
+------------------------------------------------------------------------
+  ID    Category                               Diff         Phi-4  Nemotron  Ministra
+------------------------------------------------------------------------
+  S01   Single Tool - Easy                     Easy      ✗0/3      ✓3/3      ✓3/3    
+  S02   Single Tool - Easy                     Easy      ✗0/3      ✓3/3      ✓3/3    
+  S03   Single Tool - Easy                     Easy      ✗0/3      ✓3/3      ✓3/3    
+  S04   Single Tool - Easy                     Easy      ✗0/3      ✓3/3      ✓3/3    
+  S05   Single Tool - Easy                     Easy      ✗0/3      ✓3/3      ✓3/3    
+  S06   Single Tool - Parameter Extraction     Medium    ✗0/3      ✓3/3      ✓3/3    
+  S07   Single Tool - Parameter Extraction     Medium    ✗0/3      ✓3/3      ✓3/3    
+  S08   Single Tool - Parameter Extraction     Medium    ✗0/3      ✓3/3      ✓3/3    
+  S09   Single Tool - Parameter Extraction     Medium    ✗0/3      ✓3/3      ✓3/3    
+  S10   Single Tool - Parameter Extraction     Medium    ✗0/3      ✓3/3      ✓3/3    
+  S11   Multi-Tool Chain                       Hard      ✗0/3      ~1/3      ✓3/3    
+  S12   Multi-Tool Chain                       Hard      ✗0/3      ~1/3      ✓3/3    
+  S13   Multi-Tool Chain                       Hard      ✗0/3      ~1/3      ✓3/3    
+  S14   Multi-Tool Chain                       Hard      ✗0/3      ~1/3      ✗0/3    
+  S15   No Tool Needed                         Easy      ✗0/3      ✓3/3      ✓3/3    
+  S16   No Tool Needed                         Easy      ✗0/3      ✓3/3      ✓3/3    
+  S17   No Tool Needed                         Medium    ✗0/3      ✓3/3      ✓3/3    
+  S18   Tool Selection Trap                    Medium    ✗0/3      ✗0/3      ✗0/3    
+  S19   Tool Selection Trap                    Hard      ✗0/3      ✓3/3      ✓3/3    
+  S20   Tool Selection Trap                    Medium    ✗0/3      ✓3/3      ✓3/3    
+------------------------------------------------------------------------
+
+========================================================================
+  MODEL: Phi-4   (microsoft/phi-4)
+------------------------------------------------------------------------
+  Overall score        : 0/60 (0.0%)
+  Perfect (3/3)        : 0/20
+  Zero (0/3)           : 20/20
+  Correct tool sel.    : 0/20
+  Partial tool sel.    : 0/20
+  Wrong tool sel.      : 20/20
+  Unnecessary calls    : 0/20
+  Avg param accuracy   : 0.0%
+  Avg latency          : 89.3 ms
+  Avg tokens/scenario  : 0
+
+  Category breakdown:
+    Single Tool - Easy                     [░░░░░░░░░░] 0.0%
+    Single Tool - Parameter Extraction     [░░░░░░░░░░] 0.0%
+    Multi-Tool Chain                       [░░░░░░░░░░] 0.0%
+    No Tool Needed                         [░░░░░░░░░░] 0.0%
+    Tool Selection Trap                    [░░░░░░░░░░] 0.0%
+
+  Difficulty breakdown:
+    Easy         [░░░░░░░░░░] 0.0%
+    Medium       [░░░░░░░░░░] 0.0%
+    Hard         [░░░░░░░░░░] 0.0%
+
+------------------------------------------------------------------------
+  Scenario-by-scenario:
+------------------------------------------------------------------------
+
+  [S01] Single Tool - Easy  [Easy]  ✗ FAIL
+  User message    : What's the weather like in Paris right now?
+  Expected tools  : ['get_weather']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 753.7ms | 0 tokens
+
+  [S02] Single Tool - Easy  [Easy]  ✗ FAIL
+  User message    : Convert 100 miles to kilometers.
+  Expected tools  : ['convert_units']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 48.3ms | 0 tokens
+
+  [S03] Single Tool - Easy  [Easy]  ✗ FAIL
+  User message    : What's Apple's current stock price?
+  Expected tools  : ['get_stock_price']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 47.6ms | 0 tokens
+
+  [S04] Single Tool - Easy  [Easy]  ✗ FAIL
+  User message    : Translate 'Good morning, how are you?' into French.
+  Expected tools  : ['translate_text']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 43.4ms | 0 tokens
+
+  [S05] Single Tool - Easy  [Easy]  ✗ FAIL
+  User message    : Calculate 15% of 847.
+  Expected tools  : ['calculate']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 45.2ms | 0 tokens
+
+  [S06] Single Tool - Parameter Extraction  [Medium]  ✗ FAIL
+  User message    : I'd like to book a table for 4 people at Mario's Italian Kitchen this Friday at 7:30pm.
+  Expected tools  : ['book_restaurant']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 77.3ms | 0 tokens
+
+  [S07] Single Tool - Parameter Extraction  [Medium]  ✗ FAIL
+  User message    : Remind me to call the dentist tomorrow morning at 9am.
+  Expected tools  : ['set_reminder']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 78.1ms | 0 tokens
+
+  [S08] Single Tool - Parameter Extraction  [Medium]  ✗ FAIL
+  User message    : Show me the latest news about electric vehicles.
+  Expected tools  : ['get_news']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 76.8ms | 0 tokens
+
+  [S09] Single Tool - Parameter Extraction  [Medium]  ✗ FAIL
+  User message    : How do I get from Times Square to JFK Airport using public transport?
+  Expected tools  : ['get_directions']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 46.8ms | 0 tokens
+
+  [S10] Single Tool - Parameter Extraction  [Medium]  ✗ FAIL
+  User message    : Please send an email to sarah@company.com with subject 'Project Update' saying the deadline has been moved to next Friday.
+  Expected tools  : ['send_email']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 43.8ms | 0 tokens
+
+  [S11] Multi-Tool Chain  [Hard]  ✗ FAIL
+  User message    : What's the weather in Tokyo right now? Also, how would I get there from New York?
+  Expected tools  : ['get_weather', 'get_directions']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 63.6ms | 0 tokens
+
+  [S12] Multi-Tool Chain  [Hard]  ✗ FAIL
+  User message    : What's Tesla's current stock price? Also convert it to British pounds for me.
+  Expected tools  : ['get_stock_price', 'convert_units']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 68.1ms | 0 tokens
+
+  [S13] Multi-Tool Chain  [Hard]  ✗ FAIL
+  User message    : Schedule a meeting called 'Team Standup' for tomorrow at 9am for 30 minutes. Also set a reminder 10 minutes before it starts.
+  Expected tools  : ['create_calendar_event', 'set_reminder']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 50.7ms | 0 tokens
+
+  [S14] Multi-Tool Chain  [Hard]  ✗ FAIL
+  User message    : Search for information about the Louvre Museum and get driving directions from London to Paris.
+  Expected tools  : ['search_web', 'get_directions']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 56.4ms | 0 tokens
+
+  [S15] No Tool Needed  [Easy]  ✗ FAIL
+  User message    : What is the capital of France?
+  Expected tools  : (none)
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 47.6ms | 0 tokens
+
+  [S16] No Tool Needed  [Easy]  ✗ FAIL
+  User message    : Write a short haiku about autumn leaves.
+  Expected tools  : (none)
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 48.2ms | 0 tokens
+
+  [S17] No Tool Needed  [Medium]  ✗ FAIL
+  User message    : Explain the concept of recursion in programming.
+  Expected tools  : (none)
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 49.0ms | 0 tokens
+
+  [S18] Tool Selection Trap  [Medium]  ✗ FAIL
+  User message    : I need to remember to buy groceries.
+  Expected tools  : ['set_reminder']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 44.5ms | 0 tokens
+
+  [S19] Tool Selection Trap  [Hard]  ✗ FAIL
+  User message    : I want to know today's temperature in Berlin in both Celsius and Fahrenheit.
+  Expected tools  : ['get_weather']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 51.6ms | 0 tokens
+
+  [S20] Tool Selection Trap  [Medium]  ✗ FAIL
+  User message    : What is 32 degrees Fahrenheit in Celsius?
+  Expected tools  : ['convert_units']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Error           : Error code: 404 - {'error': {'message': 'No endpoints found that support tool use. Try disabling "get_weather". To learn more about provider routing, visit: https://openrouter.ai/docs/guides/routing/provider-selection', 'code': 404}}
+  Latency/Tokens  : 45.7ms | 0 tokens
+
+========================================================================
+  MODEL: Nemotron   (nvidia/nemotron-3-super-120b-a12b)
+------------------------------------------------------------------------
+  Overall score        : 49/60 (81.7%)
+  Perfect (3/3)        : 15/20
+  Zero (0/3)           : 1/20
+  Correct tool sel.    : 15/20
+  Partial tool sel.    : 4/20
+  Wrong tool sel.      : 1/20
+  Unnecessary calls    : 0/20
+  Avg param accuracy   : 87.5%
+  Avg latency          : 18710.3 ms
+  Avg tokens/scenario  : 100
+
+  Category breakdown:
+    Single Tool - Easy                     [██████████] 100.0%
+    Single Tool - Parameter Extraction     [██████████] 100.0%
+    Multi-Tool Chain                       [███░░░░░░░] 33.3%
+    No Tool Needed                         [██████████] 100.0%
+    Tool Selection Trap                    [██████░░░░] 66.7%
+
+  Difficulty breakdown:
+    Easy         [██████████] 100.0%
+    Medium       [████████░░] 87.5%
+    Hard         [████░░░░░░] 46.7%
+
+------------------------------------------------------------------------
+  Scenario-by-scenario:
+------------------------------------------------------------------------
+
+  [S01] Single Tool - Easy  [Easy]  ✓ PASS
+  User message    : What's the weather like in Paris right now?
+  Expected tools  : ['get_weather']
+  Called tools    : ['get_weather']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    get_weather({"location": "Paris"})
+  Eval details    :
+    Tool selection: correct (['get_weather'])
+      param 'location'='paris': ✓
+  Latency/Tokens  : 2463.0ms | 57 tokens
+
+  [S02] Single Tool - Easy  [Easy]  ✓ PASS
+  User message    : Convert 100 miles to kilometers.
+  Expected tools  : ['convert_units']
+  Called tools    : ['convert_units']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    convert_units({"value": 100, "from_unit": "miles", "to_unit": "kilometers"})
+  Eval details    :
+    Tool selection: correct (['convert_units'])
+      param 'value'='100': ✓
+      param 'from_unit'='mile': ✓
+      param 'to_unit'='kilometer': ✓
+  Latency/Tokens  : 3927.8ms | 73 tokens
+
+  [S03] Single Tool - Easy  [Easy]  ✓ PASS
+  User message    : What's Apple's current stock price?
+  Expected tools  : ['get_stock_price']
+  Called tools    : ['get_stock_price']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    get_stock_price({"ticker": "AAPL"})
+  Eval details    :
+    Tool selection: correct (['get_stock_price'])
+      param 'ticker'='aapl': ✓
+  Latency/Tokens  : 2643.9ms | 56 tokens
+
+  [S04] Single Tool - Easy  [Easy]  ✓ PASS
+  User message    : Translate 'Good morning, how are you?' into French.
+  Expected tools  : ['translate_text']
+  Called tools    : ['translate_text']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    translate_text({"text": "Good morning, how are you?", "target_language": "French", "source_language": "auto"})
+  Eval details    :
+    Tool selection: correct (['translate_text'])
+      param 'target_language'='french': ✓
+  Latency/Tokens  : 4423.5ms | 79 tokens
+
+  [S05] Single Tool - Easy  [Easy]  ✓ PASS
+  User message    : Calculate 15% of 847.
+  Expected tools  : ['calculate']
+  Called tools    : ['calculate']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    calculate({"expression": "0.15 * 847"})
+  Eval details    :
+    Tool selection: correct (['calculate'])
+      param 'expression'='847': ✓
+  Latency/Tokens  : 10681.9ms | 59 tokens
+
+  [S06] Single Tool - Parameter Extraction  [Medium]  ✓ PASS
+  User message    : I'd like to book a table for 4 people at Mario's Italian Kitchen this Friday at 7:30pm.
+  Expected tools  : ['book_restaurant']
+  Called tools    : ['book_restaurant']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    book_restaurant({"name": "Mario's Italian Kitchen", "date": "2024-12-13", "time": "19:30", "party_size": 4})
+  Eval details    :
+    Tool selection: correct (['book_restaurant'])
+      param 'name'='mario': ✓
+      param 'party_size'='4': ✓
+      param 'time'='19:30': ✓
+  Latency/Tokens  : 5717.9ms | 103 tokens
+
+  [S07] Single Tool - Parameter Extraction  [Medium]  ✓ PASS
+  User message    : Remind me to call the dentist tomorrow morning at 9am.
+  Expected tools  : ['set_reminder']
+  Called tools    : ['set_reminder']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    set_reminder({"message": "Call the dentist", "datetime": "2024-12-12 09:00"})
+  Eval details    :
+    Tool selection: correct (['set_reminder'])
+      param 'message'='dentist': ✓
+  Latency/Tokens  : 255438.3ms | 79 tokens
+
+  [S08] Single Tool - Parameter Extraction  [Medium]  ✓ PASS
+  User message    : Show me the latest news about electric vehicles.
+  Expected tools  : ['get_news']
+  Called tools    : ['get_news']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    get_news({"topic": "electric vehicles", "num_articles": 5, "language": "en"})
+  Eval details    :
+    Tool selection: correct (['get_news'])
+      param 'topic'='electric': ✓
+  Latency/Tokens  : 2571.5ms | 73 tokens
+
+  [S09] Single Tool - Parameter Extraction  [Medium]  ✓ PASS
+  User message    : How do I get from Times Square to JFK Airport using public transport?
+  Expected tools  : ['get_directions']
+  Called tools    : ['get_directions']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    get_directions({"from_location": "Times Square", "to_location": "JFK Airport", "mode": "transit"})
+  Eval details    :
+    Tool selection: correct (['get_directions'])
+      param 'from_location'='times square': ✓
+      param 'to_location'='jfk': ✓
+      param 'mode'='transit': ✓
+  Latency/Tokens  : 6430.7ms | 83 tokens
+
+  [S10] Single Tool - Parameter Extraction  [Medium]  ✓ PASS
+  User message    : Please send an email to sarah@company.com with subject 'Project Update' saying the deadline has been moved to next Friday.
+  Expected tools  : ['send_email']
+  Called tools    : ['send_email']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    send_email({"to": "sarah@company.com", "subject": "Project Update", "body": "The deadline has been moved to next Friday."})
+  Eval details    :
+    Tool selection: correct (['send_email'])
+      param 'to'='sarah@company.com': ✓
+      param 'subject'='project update': ✓
+  Latency/Tokens  : 2475.3ms | 100 tokens
+
+  [S11] Multi-Tool Chain  [Hard]  ~ 1/3
+  User message    : What's the weather in Tokyo right now? Also, how would I get there from New York?
+  Expected tools  : ['get_weather', 'get_directions']
+  Called tools    : ['get_weather']
+  Tool selection  : partial
+  Param accuracy  : 67%
+  Tool arguments  :
+    get_weather({"location": "Tokyo"})
+  Eval details    :
+    Missing tools: ['get_directions']
+      param 'location'='tokyo': ✓
+      param 'from_location'='new york': ✗
+      param 'to_location'='tokyo': ✓
+  Latency/Tokens  : 1638.0ms | 68 tokens
+
+  [S12] Multi-Tool Chain  [Hard]  ~ 1/3
+  User message    : What's Tesla's current stock price? Also convert it to British pounds for me.
+  Expected tools  : ['get_stock_price', 'convert_units']
+  Called tools    : ['get_stock_price']
+  Tool selection  : partial
+  Param accuracy  : 50%
+  Tool arguments  :
+    get_stock_price({"ticker": "TSLA", "currency": "USD"})
+  Eval details    :
+    Missing tools: ['convert_units']
+      param 'ticker'='tsla': ✓
+      param 'to_unit'='gbp': ✗
+  Latency/Tokens  : 12956.1ms | 73 tokens
+
+  [S13] Multi-Tool Chain  [Hard]  ~ 1/3
+  User message    : Schedule a meeting called 'Team Standup' for tomorrow at 9am for 30 minutes. Also set a reminder 10 minutes before it starts.
+  Expected tools  : ['create_calendar_event', 'set_reminder']
+  Called tools    : ['create_calendar_event']
+  Tool selection  : partial
+  Param accuracy  : 100%
+  Tool arguments  :
+    create_calendar_event({"title": "Team Standup", "date": "2024-12-13", "time": "09:00", "duration_minutes": 30})
+  Eval details    :
+    Missing tools: ['set_reminder']
+      param 'title'='standup': ✓
+      param 'duration_minutes'='30': ✓
+  Latency/Tokens  : 8072.7ms | 110 tokens
+
+  [S14] Multi-Tool Chain  [Hard]  ~ 1/3
+  User message    : Search for information about the Louvre Museum and get driving directions from London to Paris.
+  Expected tools  : ['search_web', 'get_directions']
+  Called tools    : ['search_web']
+  Tool selection  : partial
+  Param accuracy  : 33%
+  Tool arguments  :
+    search_web({"query": "Louvre Museum information", "num_results": 5})
+  Eval details    :
+    Missing tools: ['get_directions']
+      param 'query'='louvre': ✓
+      param 'from_location'='london': ✗
+      param 'to_location'='paris': ✗
+  Latency/Tokens  : 3445.2ms | 76 tokens
+
+  [S15] No Tool Needed  [Easy]  ✓ PASS
+  User message    : What is the capital of France?
+  Expected tools  : (none)
+  Called tools    : (none)
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Text response   : The capital of France is Paris.
+  Eval details    :
+    Correctly answered without calling any tool.
+  Latency/Tokens  : 2286.0ms | 22 tokens
+
+  [S16] No Tool Needed  [Easy]  ✓ PASS
+  User message    : Write a short haiku about autumn leaves.
+  Expected tools  : (none)
+  Called tools    : (none)
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Text response   : Crimson leaves descend  
+Whispering secrets to soil  
+Autumn's soft goodbye
+  Eval details    :
+    Correctly answered without calling any tool.
+  Latency/Tokens  : 17374.7ms | 35 tokens
+
+  [S17] No Tool Needed  [Medium]  ✓ PASS
+  User message    : Explain the concept of recursion in programming.
+  Expected tools  : (none)
+  Called tools    : (none)
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Text response   : Recursion is a fundamental programming technique where a function calls itself to solve a problem by breaking it down into smaller, similar subproblems. It's particularly useful for problems that have
+  Eval details    :
+    Correctly answered without calling any tool.
+  Latency/Tokens  : 19476.0ms | 577 tokens
+
+  [S18] Tool Selection Trap  [Medium]  ✗ FAIL
+  User message    : I need to remember to buy groceries.
+  Expected tools  : ['set_reminder']
+  Called tools    : (none)
+  Tool selection  : wrong
+  Param accuracy  : 0%
+  Text response   : I'd be happy to help you set a reminder to buy groceries! To create the reminder, I need to know:
+
+1. **What specific message** would you like for the reminder? (e.g., "Buy groceries", "Get milk, eggs
+  Eval details    :
+    No tool called when one was required.
+  Latency/Tokens  : 6982.4ms | 138 tokens
+
+  [S19] Tool Selection Trap  [Hard]  ✓ PASS
+  User message    : I want to know today's temperature in Berlin in both Celsius and Fahrenheit.
+  Expected tools  : ['get_weather']
+  Called tools    : ['get_weather']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    get_weather({"location": "Berlin", "unit": "celsius"})
+  Eval details    :
+    Tool selection: correct (['get_weather'])
+      param 'location'='berlin': ✓
+  Latency/Tokens  : 3224.5ms | 71 tokens
+
+  [S20] Tool Selection Trap  [Medium]  ✓ PASS
+  User message    : What is 32 degrees Fahrenheit in Celsius?
+  Expected tools  : ['convert_units']
+  Called tools    : ['convert_units']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    convert_units({"value": 32, "from_unit": "fahrenheit", "to_unit": "celsius"})
+  Eval details    :
+    Acceptable alternative tool set used: ['convert_units']
+  Latency/Tokens  : 1976.6ms | 72 tokens
+
+========================================================================
+  MODEL: Ministral   (mistralai/ministral-14b-2512)
+------------------------------------------------------------------------
+  Overall score        : 54/60 (90.0%)
+  Perfect (3/3)        : 18/20
+  Zero (0/3)           : 2/20
+  Correct tool sel.    : 18/20
+  Partial tool sel.    : 0/20
+  Wrong tool sel.      : 2/20
+  Unnecessary calls    : 0/20
+  Avg param accuracy   : 90.0%
+  Avg latency          : 27471.3 ms
+  Avg tokens/scenario  : 1531
+
+  Category breakdown:
+    Single Tool - Easy                     [██████████] 100.0%
+    Single Tool - Parameter Extraction     [██████████] 100.0%
+    Multi-Tool Chain                       [███████░░░] 75.0%
+    No Tool Needed                         [██████████] 100.0%
+    Tool Selection Trap                    [██████░░░░] 66.7%
+
+  Difficulty breakdown:
+    Easy         [██████████] 100.0%
+    Medium       [████████░░] 87.5%
+    Hard         [████████░░] 80.0%
+
+------------------------------------------------------------------------
+  Scenario-by-scenario:
+------------------------------------------------------------------------
+
+  [S01] Single Tool - Easy  [Easy]  ✓ PASS
+  User message    : What's the weather like in Paris right now?
+  Expected tools  : ['get_weather']
+  Called tools    : ['get_weather']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    get_weather({"location": "Paris"})
+  Eval details    :
+    Tool selection: correct (['get_weather'])
+      param 'location'='paris': ✓
+  Latency/Tokens  : 719.2ms | 1534 tokens
+
+  [S02] Single Tool - Easy  [Easy]  ✓ PASS
+  User message    : Convert 100 miles to kilometers.
+  Expected tools  : ['convert_units']
+  Called tools    : ['convert_units']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    convert_units({"value": 100, "from_unit": "miles", "to_unit": "kilometers"})
+  Eval details    :
+    Tool selection: correct (['convert_units'])
+      param 'value'='100': ✓
+      param 'from_unit'='mile': ✓
+      param 'to_unit'='kilometer': ✓
+  Latency/Tokens  : 1258.6ms | 1550 tokens
+
+  [S03] Single Tool - Easy  [Easy]  ✓ PASS
+  User message    : What's Apple's current stock price?
+  Expected tools  : ['get_stock_price']
+  Called tools    : ['get_stock_price']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    get_stock_price({"ticker": "AAPL"})
+  Eval details    :
+    Tool selection: correct (['get_stock_price'])
+      param 'ticker'='aapl': ✓
+  Latency/Tokens  : 649.4ms | 1535 tokens
+
+  [S04] Single Tool - Easy  [Easy]  ✓ PASS
+  User message    : Translate 'Good morning, how are you?' into French.
+  Expected tools  : ['translate_text']
+  Called tools    : ['translate_text']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    translate_text({"text": "Good morning, how are you?", "target_language": "French"})
+  Eval details    :
+    Tool selection: correct (['translate_text'])
+      param 'target_language'='french': ✓
+  Latency/Tokens  : 1379.5ms | 1547 tokens
+
+  [S05] Single Tool - Easy  [Easy]  ✓ PASS
+  User message    : Calculate 15% of 847.
+  Expected tools  : ['calculate']
+  Called tools    : ['calculate', 'calculate']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    calculate({"expression": "15 * 0.15"})
+    calculate({"expression": "847 * 0.15"})
+  Eval details    :
+    Tool selection: correct (['calculate', 'calculate'])
+      param 'expression'='847': ✓
+  Latency/Tokens  : 1035.5ms | 1557 tokens
+
+  [S06] Single Tool - Parameter Extraction  [Medium]  ✓ PASS
+  User message    : I'd like to book a table for 4 people at Mario's Italian Kitchen this Friday at 7:30pm.
+  Expected tools  : ['book_restaurant']
+  Called tools    : ['book_restaurant']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    book_restaurant({"name": "Mario's Italian Kitchen", "date": "2024-07-19", "time": "19:30", "party_size": 4})
+  Eval details    :
+    Tool selection: correct (['book_restaurant'])
+      param 'name'='mario': ✓
+      param 'party_size'='4': ✓
+      param 'time'='19:30': ✓
+  Latency/Tokens  : 1265.9ms | 1585 tokens
+
+  [S07] Single Tool - Parameter Extraction  [Medium]  ✓ PASS
+  User message    : Remind me to call the dentist tomorrow morning at 9am.
+  Expected tools  : ['set_reminder']
+  Called tools    : ['set_reminder']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    set_reminder({"message": "Call the dentist", "datetime": "2023-10-27 09:00"})
+  Eval details    :
+    Tool selection: correct (['set_reminder'])
+      param 'message'='dentist': ✓
+  Latency/Tokens  : 1711.1ms | 1562 tokens
+
+  [S08] Single Tool - Parameter Extraction  [Medium]  ✓ PASS
+  User message    : Show me the latest news about electric vehicles.
+  Expected tools  : ['get_news']
+  Called tools    : ['get_news']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    get_news({"topic": "electric vehicles", "num_articles": 5, "language": "en"})
+  Eval details    :
+    Tool selection: correct (['get_news'])
+      param 'topic'='electric': ✓
+  Latency/Tokens  : 824.3ms | 1548 tokens
+
+  [S09] Single Tool - Parameter Extraction  [Medium]  ✓ PASS
+  User message    : How do I get from Times Square to JFK Airport using public transport?
+  Expected tools  : ['get_directions']
+  Called tools    : ['get_directions']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    get_directions({"from_location": "Times Square, New York", "to_location": "JFK Airport, New York", "mode": "transit"})
+  Eval details    :
+    Tool selection: correct (['get_directions'])
+      param 'from_location'='times square': ✓
+      param 'to_location'='jfk': ✓
+      param 'mode'='transit': ✓
+  Latency/Tokens  : 1139.9ms | 1564 tokens
+
+  [S10] Single Tool - Parameter Extraction  [Medium]  ✓ PASS
+  User message    : Please send an email to sarah@company.com with subject 'Project Update' saying the deadline has been moved to next Friday.
+  Expected tools  : ['send_email']
+  Called tools    : ['send_email']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    send_email({"to": "sarah@company.com", "subject": "Project Update", "body": "Hi Sarah,\n\nI hope this email finds you well. I wanted to inform you that the deadline for the project has been moved to next Friday.\n\nLet me know if you have any questions or need further clarification.\n\nBest regards,\n[Your Name]"})
+  Eval details    :
+    Tool selection: correct (['send_email'])
+      param 'to'='sarah@company.com': ✓
+      param 'subject'='project update': ✓
+  Latency/Tokens  : 13009.6ms | 1621 tokens
+
+  [S11] Multi-Tool Chain  [Hard]  ✓ PASS
+  User message    : What's the weather in Tokyo right now? Also, how would I get there from New York?
+  Expected tools  : ['get_weather', 'get_directions']
+  Called tools    : ['get_weather', 'get_directions']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    get_weather({"location": "Tokyo"})
+    get_directions({"from_location": "New York", "to_location": "Tokyo"})
+  Eval details    :
+    Tool selection: correct (['get_weather', 'get_directions'])
+      param 'location'='tokyo': ✓
+      param 'from_location'='new york': ✓
+      param 'to_location'='tokyo': ✓
+  Latency/Tokens  : 927.8ms | 1565 tokens
+
+  [S12] Multi-Tool Chain  [Hard]  ✓ PASS
+  User message    : What's Tesla's current stock price? Also convert it to British pounds for me.
+  Expected tools  : ['get_stock_price', 'convert_units']
+  Called tools    : ['get_stock_price', 'convert_units']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    get_stock_price({"ticker": "TSLA", "currency": "USD"})
+    convert_units({"value": 0, "from_unit": "USD", "to_unit": "GBP"})
+  Eval details    :
+    Tool selection: correct (['get_stock_price', 'convert_units'])
+      param 'ticker'='tsla': ✓
+      param 'to_unit'='gbp': ✓
+  Latency/Tokens  : 1208.7ms | 1574 tokens
+
+  [S13] Multi-Tool Chain  [Hard]  ✓ PASS
+  User message    : Schedule a meeting called 'Team Standup' for tomorrow at 9am for 30 minutes. Also set a reminder 10 minutes before it starts.
+  Expected tools  : ['create_calendar_event', 'set_reminder']
+  Called tools    : ['create_calendar_event', 'set_reminder']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    create_calendar_event({"title": "Team Standup", "date": "2023-10-26", "time": "09:00", "duration_minutes": 30})
+    set_reminder({"message": "Team Standup in 10 minutes!", "datetime": "2023-10-26 08:50"})
+  Eval details    :
+    Tool selection: correct (['create_calendar_event', 'set_reminder'])
+      param 'title'='standup': ✓
+      param 'duration_minutes'='30': ✓
+  Latency/Tokens  : 3415.4ms | 1634 tokens
+
+  [S14] Multi-Tool Chain  [Hard]  ✗ FAIL
+  User message    : Search for information about the Louvre Museum and get driving directions from London to Paris.
+  Expected tools  : ['search_web', 'get_directions']
+  Called tools    : (none)
+  Tool selection  : error
+  Param accuracy  : 0%
+  Eval details    :
+    API error: Connection error.
+  Error           : Connection error.
+  Latency/Tokens  : 410113.5ms | 0 tokens
+
+  [S15] No Tool Needed  [Easy]  ✓ PASS
+  User message    : What is the capital of France?
+  Expected tools  : (none)
+  Called tools    : (none)
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Text response   : The capital of France is **Paris**.
+  Eval details    :
+    Correctly answered without calling any tool.
+  Latency/Tokens  : 23335.5ms | 1528 tokens
+
+  [S16] No Tool Needed  [Easy]  ✓ PASS
+  User message    : Write a short haiku about autumn leaves.
+  Expected tools  : (none)
+  Called tools    : (none)
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Text response   : Crisp whispers dance,
+Golden leaves on breeze do glide,
+Earth wears orange grace.
+  Eval details    :
+    Correctly answered without calling any tool.
+  Latency/Tokens  : 61720.8ms | 1540 tokens
+
+  [S17] No Tool Needed  [Medium]  ✓ PASS
+  User message    : Explain the concept of recursion in programming.
+  Expected tools  : (none)
+  Called tools    : (none)
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Text response   : ### **Recursion in Programming**
+
+**Recursion** is a programming technique where a **function calls itself** directly or indirectly to solve a problem. Instead of using loops (like `for` or `while`), 
+  Eval details    :
+    Correctly answered without calling any tool.
+  Latency/Tokens  : 18925.3ms | 2478 tokens
+
+  [S18] Tool Selection Trap  [Medium]  ✗ FAIL
+  User message    : I need to remember to buy groceries.
+  Expected tools  : ['set_reminder']
+  Called tools    : (none)
+  Tool selection  : wrong
+  Param accuracy  : 0%
+  Text response   : Sure! What time would you like me to remind you to buy groceries? For example, you could say:
+- **"Remind me at 3 PM today."**
+- **"Remind me tomorrow morning at 7 AM."**
+  Eval details    :
+    No tool called when one was required.
+  Latency/Tokens  : 3545.6ms | 1572 tokens
+
+  [S19] Tool Selection Trap  [Hard]  ✓ PASS
+  User message    : I want to know today's temperature in Berlin in both Celsius and Fahrenheit.
+  Expected tools  : ['get_weather']
+  Called tools    : ['get_weather', 'get_weather']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    get_weather({"location": "Berlin", "unit": "celsius"})
+    get_weather({"location": "Berlin", "unit": "fahrenheit"})
+  Eval details    :
+    Tool selection: correct (['get_weather', 'get_weather'])
+      param 'location'='berlin': ✓
+  Latency/Tokens  : 1938.1ms | 1566 tokens
+
+  [S20] Tool Selection Trap  [Medium]  ✓ PASS
+  User message    : What is 32 degrees Fahrenheit in Celsius?
+  Expected tools  : ['convert_units']
+  Called tools    : ['convert_units']
+  Tool selection  : correct
+  Param accuracy  : 100%
+  Tool arguments  :
+    convert_units({"value": 32, "from_unit": "fahrenheit", "to_unit": "celsius"})
+  Eval details    :
+    Acceptable alternative tool set used: ['convert_units']
+  Latency/Tokens  : 1301.4ms | 1552 tokens
+
+========================================================================
+  END OF REPORT
+========================================================================

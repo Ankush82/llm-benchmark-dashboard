@@ -1,0 +1,589 @@
+"""
+LLM Benchmark Dashboard
+Run benchmarks and visualize results from one place.
+
+Usage:
+    streamlit run dashboard.py
+    python3 -m streamlit run dashboard.py
+"""
+
+import re
+import os
+import sys
+import subprocess
+import threading
+import queue
+from pathlib import Path
+from datetime import datetime
+
+import pandas as pd
+import plotly.graph_objects as go
+import plotly.express as px
+import streamlit as st
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  CONFIG
+# ══════════════════════════════════════════════════════════════════════════════
+
+BENCH_DIR    = Path(__file__).parent
+RESULTS_DIR  = BENCH_DIR / "BenchMark_Results"
+RESULTS_DIR.mkdir(exist_ok=True)
+
+# API key — from Streamlit secrets (cloud) or local secrets.toml
+try:
+    OPENROUTER_API_KEY = st.secrets["OPENROUTER_API_KEY"]
+except Exception:
+    OPENROUTER_API_KEY = ""
+
+BENCHMARKS = {
+    "GSM8K Math":               {"script": "Gsm8k.py",                    "modes": ["standard"]},
+    "MT-Bench Chat":             {"script": "mt_bench.py",                 "modes": ["standard"]},
+    "Reasoning Recovery v2":    {"script": "Recovery.py",                  "modes": ["standard"]},
+    "Tool Calling":             {"script": "tool_calling_benchmark.py",    "modes": ["standard"]},
+    "Code Writing — Standard":  {"script": "code_writing_benchmark.py",   "modes": ["standard"]},
+    "Code Writing — Thinking":  {"script": "code_writing_benchmark.py",   "modes": ["thinking"]},
+    "Code Writing — Consistency":{"script": "code_writing_benchmark.py",  "modes": ["consistency"]},
+}
+
+MODEL_COLORS = {
+    "Phi-4":              "#4C9BE8",
+    "Phi-4-Reasoning":    "#1A5FA8",
+    "Nemotron":           "#76B900",
+    "Nemotron-Reasoning": "#4A7A00",
+    "Ministral":          "#FF6B35",
+}
+
+def model_color(name):
+    for key, color in MODEL_COLORS.items():
+        if key.lower() in name.lower():
+            return color
+    return "#888888"
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  RESULT FILE PARSERS
+# ══════════════════════════════════════════════════════════════════════════════
+
+def detect_benchmark_type(filename):
+    name = filename.lower()
+    if "gsm8k"          in name: return "gsm8k"
+    if "mt_bench"       in name: return "mt_bench"
+    if "reasoning_recov" in name: return "reasoning_recovery"
+    if "tool_calling"   in name: return "tool_calling"
+    if "code_consistency" in name: return "code_consistency"
+    if "code_thinking"  in name: return "code_thinking"
+    if "code_writing"   in name: return "code_writing"
+    return "unknown"
+
+
+def parse_gsm8k(text):
+    models, rows = [], []
+    for m in re.finditer(r'MODEL:\s+(\S+)', text):
+        models.append(m.group(1))
+    acc   = re.findall(r'Accuracy\s*:\s*(\d+)/(\d+)\s*\(([0-9.]+)%\)', text)
+    lat   = re.findall(r'Avg latency\s*:\s*([0-9.]+)\s*ms', text)
+    tok   = re.findall(r'Avg total tokens\s*:\s*([0-9.]+)', text)
+    for i, name in enumerate(models):
+        rows.append({
+            "Model":       name,
+            "Accuracy %":  float(acc[i][2]) if i < len(acc) else 0,
+            "Correct":     int(acc[i][0])   if i < len(acc) else 0,
+            "Total":       int(acc[i][1])   if i < len(acc) else 0,
+            "Avg Latency": float(lat[i])    if i < len(lat) else 0,
+            "Avg Tokens":  float(tok[i])    if i < len(tok) else 0,
+        })
+    return pd.DataFrame(rows), "Accuracy %", "GSM8K Accuracy (%)"
+
+
+def parse_mt_bench(text):
+    rows = []
+    for m in re.finditer(
+        r'MODEL:\s+(\S+).*?Overall score\s*:\s*([0-9.]+)', text, re.DOTALL
+    ):
+        name, score = m.group(1), float(m.group(2))
+        t1 = re.search(r'Turn 1 avg\s*:\s*([0-9.]+)', text[m.start():m.start()+500])
+        t2 = re.search(r'Turn 2 avg\s*:\s*([0-9.]+)', text[m.start():m.start()+500])
+        rows.append({
+            "Model":       name,
+            "Overall /10": score,
+            "Turn 1 /10":  float(t1.group(1)) if t1 else 0,
+            "Turn 2 /10":  float(t2.group(1)) if t2 else 0,
+        })
+
+    # Category scores
+    cats = ["Writing","Roleplay","Reasoning","Math","Coding","Extraction","STEM","Humanities"]
+    cat_data = {}
+    for cat in cats:
+        scores = re.findall(rf'{cat}\s+.*?([0-9.]+)/10', text)
+        if scores:
+            cat_data[cat] = [float(s) for s in scores]
+
+    df = pd.DataFrame(rows)
+    return df, "Overall /10", "MT-Bench Overall Score (/10)"
+
+
+def parse_reasoning_recovery(text):
+    rows = []
+    for m in re.finditer(
+        r'MODEL:\s+(\S+).*?Overall accuracy\s*:\s*(\d+)/(\d+)\s*\(([0-9.]+)%\)',
+        text, re.DOTALL
+    ):
+        name = m.group(1)
+        block_start = m.start()
+        block = text[block_start:block_start+600]
+        clean  = re.search(r'Solved cleanly\s*:\s*(\d+)', block)
+        recov  = re.search(r'Self-corrected.*?:\s*(\d+)', block)
+        false_ = re.search(r'False recovery\s*:\s*(\d+)', block)
+        missed = re.search(r'Wrong, never noticed\s*:\s*(\d+)', block)
+        rows.append({
+            "Model":       name,
+            "Accuracy %":  float(m.group(4)),
+            "Correct":     int(m.group(2)),
+            "Clean":       int(clean.group(1))  if clean  else 0,
+            "Recovered":   int(recov.group(1))  if recov  else 0,
+            "False Recov": int(false_.group(1)) if false_ else 0,
+            "Missed":      int(missed.group(1)) if missed else 0,
+        })
+    return pd.DataFrame(rows), "Accuracy %", "Reasoning Recovery Accuracy (%)"
+
+
+def parse_tool_calling(text):
+    rows = []
+    for m in re.finditer(
+        r'MODEL:\s+(\S+).*?Overall score\s*:\s*(\d+)/(\d+)\s*\(([0-9.]+)%\)',
+        text, re.DOTALL
+    ):
+        name  = m.group(1)
+        block = text[m.start():m.start()+800]
+        corr  = re.search(r'Correct tool sel\.\s*:\s*(\d+)', block)
+        part  = re.search(r'Partial tool sel\.\s*:\s*(\d+)', block)
+        wrong = re.search(r'Wrong tool sel\.\s*:\s*(\d+)', block)
+        param = re.search(r'Avg param accuracy\s*:\s*([0-9.]+)%', block)
+        rows.append({
+            "Model":          name,
+            "Score %":        float(m.group(4)),
+            "Total Score":    f"{m.group(2)}/{m.group(3)}",
+            "Correct Tools":  int(corr.group(1))  if corr  else 0,
+            "Partial":        int(part.group(1))  if part  else 0,
+            "Wrong":          int(wrong.group(1)) if wrong else 0,
+            "Param Acc %":    float(param.group(1)) if param else 0,
+        })
+    return pd.DataFrame(rows), "Score %", "Tool Calling Score (%)"
+
+
+def parse_code_writing(text):
+    rows = []
+    for m in re.finditer(
+        r'MODEL:\s+(\S+).*?Avg score\s*:\s*([0-9.]+)/10',
+        text, re.DOTALL
+    ):
+        name  = m.group(1)
+        score = float(m.group(2))
+        block = text[m.start():m.start()+600]
+        lat   = re.search(r'Avg latency\s*:\s*([0-9.]+)', block)
+        tok   = re.search(r'Avg tokens\s*:\s*([0-9.]+)', block)
+        rows.append({
+            "Model":       name,
+            "Avg Score /10": score,
+            "Avg Latency": float(lat.group(1)) if lat else 0,
+            "Avg Tokens":  float(tok.group(1)) if tok else 0,
+        })
+    return pd.DataFrame(rows), "Avg Score /10", "Code Writing Score (/10)"
+
+
+def parse_code_consistency(text):
+    rows = []
+    for m in re.finditer(
+        r'MODEL:\s+(\S+).*?Avg mean score\s*:\s*([0-9.]+)/10.*?'
+        r'Avg std deviation\s*:\s*([0-9.]+).*?Avg consistency\s*:\s*([0-9.]+)%',
+        text, re.DOTALL
+    ):
+        rows.append({
+            "Model":         m.group(1),
+            "Mean Score /10": float(m.group(2)),
+            "Std Dev":       float(m.group(3)),
+            "Consistency %": float(m.group(4)),
+        })
+    return pd.DataFrame(rows), "Consistency %", "Consistency Score (%)"
+
+
+def parse_report(filepath):
+    text = Path(filepath).read_text(encoding="utf-8")
+    btype = detect_benchmark_type(Path(filepath).name)
+    parsers = {
+        "gsm8k":              parse_gsm8k,
+        "mt_bench":           parse_mt_bench,
+        "reasoning_recovery": parse_reasoning_recovery,
+        "tool_calling":       parse_tool_calling,
+        "code_writing":       parse_code_writing,
+        "code_thinking":      parse_code_writing,
+        "code_consistency":   parse_code_consistency,
+    }
+    if btype in parsers:
+        return parsers[btype](text), btype, text
+    return None, btype, text
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  CHART BUILDERS
+# ══════════════════════════════════════════════════════════════════════════════
+
+def bar_chart(df, score_col, title):
+    if df is None or df.empty or "Model" not in df.columns:
+        return None
+    colors = [model_color(m) for m in df["Model"]]
+    fig = go.Figure(go.Bar(
+        x=df["Model"],
+        y=df[score_col],
+        marker_color=colors,
+        text=[f"{v:.1f}" for v in df[score_col]],
+        textposition="outside",
+    ))
+    fig.update_layout(
+        title=title,
+        yaxis_title=score_col,
+        plot_bgcolor="#0e1117",
+        paper_bgcolor="#0e1117",
+        font_color="#fafafa",
+        height=350,
+        margin=dict(t=50, b=20),
+    )
+    return fig
+
+
+def radar_chart(df, score_cols, title):
+    if df is None or df.empty:
+        return None
+    fig = go.Figure()
+    for _, row in df.iterrows():
+        values = [row[c] for c in score_cols if c in df.columns]
+        labels = [c for c in score_cols if c in df.columns]
+        values += [values[0]]
+        labels += [labels[0]]
+        fig.add_trace(go.Scatterpolar(
+            r=values, theta=labels,
+            fill="toself",
+            name=row["Model"],
+            line_color=model_color(row["Model"]),
+        ))
+    fig.update_layout(
+        polar=dict(radialaxis=dict(visible=True)),
+        title=title,
+        paper_bgcolor="#0e1117",
+        font_color="#fafafa",
+        height=400,
+    )
+    return fig
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  BENCHMARK RUNNER
+# ══════════════════════════════════════════════════════════════════════════════
+
+def build_command(benchmark_name, consistency_n=3):
+    cfg = BENCHMARKS[benchmark_name]
+    script = str(BENCH_DIR / cfg["script"])
+    cmd = [sys.executable, script]
+    modes = cfg["modes"]
+    if "thinking"     in modes: cmd.append("--thinking")
+    if "consistency"  in modes: cmd += ["--consistency", str(consistency_n)]
+    return cmd
+
+
+def stream_process(cmd, output_queue):
+    try:
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            text=True, bufsize=1, cwd=str(BENCH_DIR),
+        )
+        for line in proc.stdout:
+            output_queue.put(line)
+        proc.wait()
+        output_queue.put(None)  # sentinel
+    except Exception as e:
+        output_queue.put(f"ERROR: {e}\n")
+        output_queue.put(None)
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  PAGE: RUN BENCHMARKS
+# ══════════════════════════════════════════════════════════════════════════════
+
+def page_run():
+    st.header("Run Benchmarks")
+
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        benchmark = st.selectbox("Select benchmark", list(BENCHMARKS.keys()))
+    with col2:
+        consistency_n = 1
+        if "Consistency" in benchmark:
+            consistency_n = st.number_input("Runs per problem", min_value=2, max_value=10, value=3)
+
+    cfg = BENCHMARKS[benchmark]
+    script_path = BENCH_DIR / cfg["script"]
+
+    if not script_path.exists():
+        st.error(f"Script not found: {cfg['script']}")
+        return
+
+    st.caption(f"Script: `{cfg['script']}`  •  Mode: `{', '.join(cfg['modes'])}`")
+
+    if st.button("▶  Run Benchmark", type="primary", use_container_width=True):
+        cmd = build_command(benchmark, consistency_n)
+        st.info(f"Running: `{' '.join(cmd)}`")
+
+        output_box  = st.empty()
+        status_box  = st.empty()
+        full_output = []
+
+        q = queue.Queue()
+        thread = threading.Thread(target=stream_process, args=(cmd, q), daemon=True)
+        thread.start()
+
+        status_box.warning("Running…")
+        while True:
+            try:
+                line = q.get(timeout=0.1)
+            except queue.Empty:
+                continue
+            if line is None:
+                break
+            full_output.append(line)
+            # Show last 40 lines live
+            visible = full_output[-40:]
+            output_box.code("".join(visible), language="text")
+
+        thread.join()
+        status_box.success("Finished! Refresh the Results page to see the new report.")
+        output_box.code("".join(full_output), language="text")
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  PAGE: VIEW RESULTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+def page_results():
+    st.header("View Results")
+
+    files = sorted(RESULTS_DIR.glob("*.txt"), reverse=True)
+    if not files:
+        st.info("No results yet. Run a benchmark first.")
+        return
+
+    # File picker
+    file_labels = []
+    for f in files:
+        mtime = datetime.fromtimestamp(f.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
+        btype = detect_benchmark_type(f.name).replace("_", " ").title()
+        file_labels.append(f"{mtime}  ·  {btype}  ·  {f.name}")
+
+    chosen_idx = st.selectbox("Select report", range(len(files)), format_func=lambda i: file_labels[i])
+    chosen_file = files[chosen_idx]
+
+    result, btype, raw_text = parse_report(chosen_file)
+
+    if result is None:
+        st.warning("Could not parse this report format.")
+        with st.expander("Raw report"):
+            st.text(raw_text)
+        return
+
+    df, score_col, chart_title = result
+
+    # ── Metrics row ────────────────────────────────────────────────────────────
+    if df is not None and not df.empty and "Model" in df.columns and score_col in df.columns:
+        st.subheader("Summary")
+        cols = st.columns(len(df))
+        for i, (_, row) in enumerate(df.iterrows()):
+            with cols[i]:
+                st.metric(row["Model"], f"{row[score_col]:.1f}")
+
+        # ── Bar chart ──────────────────────────────────────────────────────────
+        fig = bar_chart(df, score_col, chart_title)
+        if fig:
+            st.plotly_chart(fig, use_container_width=True)
+
+        # ── Data table ────────────────────────────────────────────────────────
+        st.subheader("Full Table")
+        st.dataframe(df.set_index("Model"), use_container_width=True)
+
+        # ── Extra charts by type ──────────────────────────────────────────────
+        if btype == "mt_bench" and {"Turn 1 /10", "Turn 2 /10"}.issubset(df.columns):
+            fig2 = radar_chart(df, ["Turn 1 /10", "Turn 2 /10"], "Turn 1 vs Turn 2")
+            if fig2:
+                st.plotly_chart(fig2, use_container_width=True)
+
+        if btype == "reasoning_recovery":
+            stack_cols = ["Clean", "Recovered", "False Recov", "Missed"]
+            if all(c in df.columns for c in stack_cols):
+                st.subheader("Recovery Breakdown")
+                fig3 = px.bar(
+                    df.melt(id_vars="Model", value_vars=stack_cols,
+                            var_name="Type", value_name="Count"),
+                    x="Model", y="Count", color="Type", barmode="stack",
+                    title="Recovery Types per Model",
+                    template="plotly_dark",
+                )
+                st.plotly_chart(fig3, use_container_width=True)
+
+        if btype == "code_consistency" and "Std Dev" in df.columns:
+            st.subheader("Consistency vs Score")
+            fig4 = px.scatter(
+                df, x="Std Dev", y="Mean Score /10", text="Model",
+                title="Mean Score vs Std Dev (lower StdDev = more consistent)",
+                template="plotly_dark",
+                color="Model",
+                color_discrete_map={m: model_color(m) for m in df["Model"]},
+            )
+            fig4.update_traces(textposition="top center", marker_size=12)
+            st.plotly_chart(fig4, use_container_width=True)
+
+        if btype == "tool_calling" and "Correct Tools" in df.columns:
+            st.subheader("Tool Selection Breakdown")
+            fig5 = px.bar(
+                df.melt(id_vars="Model", value_vars=["Correct Tools", "Partial", "Wrong"],
+                        var_name="Type", value_name="Count"),
+                x="Model", y="Count", color="Type", barmode="stack",
+                title="Tool Selection Accuracy",
+                template="plotly_dark",
+                color_discrete_map={"Correct Tools":"#76B900","Partial":"#FF6B35","Wrong":"#E84040"},
+            )
+            st.plotly_chart(fig5, use_container_width=True)
+
+    # ── Raw report ─────────────────────────────────────────────────────────────
+    with st.expander("Raw report text"):
+        st.text(raw_text)
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  PAGE: COMPARE
+# ══════════════════════════════════════════════════════════════════════════════
+
+def page_compare():
+    st.header("Compare Reports")
+
+    files = sorted(RESULTS_DIR.glob("*.txt"), reverse=True)
+    if len(files) < 2:
+        st.info("Need at least 2 result files to compare.")
+        return
+
+    def label(f):
+        mtime = datetime.fromtimestamp(f.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
+        btype = detect_benchmark_type(f.name).replace("_", " ").title()
+        return f"{mtime}  ·  {btype}  ·  {f.name}"
+
+    col1, col2 = st.columns(2)
+    with col1:
+        idx_a = st.selectbox("Report A", range(len(files)), format_func=lambda i: label(files[i]), key="cmp_a")
+    with col2:
+        idx_b = st.selectbox("Report B", range(len(files)), format_func=lambda i: label(files[i]),
+                             key="cmp_b", index=min(1, len(files)-1))
+
+    res_a, btype_a, _ = parse_report(files[idx_a])
+    res_b, btype_b, _ = parse_report(files[idx_b])
+
+    if res_a is None or res_b is None:
+        st.warning("Could not parse one or both reports.")
+        return
+
+    df_a, score_col_a, title_a = res_a
+    df_b, score_col_b, title_b = res_b
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader(f"A: {files[idx_a].name}")
+        if df_a is not None and not df_a.empty:
+            st.dataframe(df_a.set_index("Model"), use_container_width=True)
+            fig = bar_chart(df_a, score_col_a, title_a)
+            if fig:
+                st.plotly_chart(fig, use_container_width=True)
+
+    with col2:
+        st.subheader(f"B: {files[idx_b].name}")
+        if df_b is not None and not df_b.empty:
+            st.dataframe(df_b.set_index("Model"), use_container_width=True)
+            fig = bar_chart(df_b, score_col_b, title_b)
+            if fig:
+                st.plotly_chart(fig, use_container_width=True)
+
+    # Combined comparison if same score column
+    if (score_col_a == score_col_b and df_a is not None and df_b is not None
+            and not df_a.empty and not df_b.empty):
+        st.subheader("Side-by-side Model Scores")
+        merged = pd.merge(
+            df_a[["Model", score_col_a]].rename(columns={score_col_a: "Report A"}),
+            df_b[["Model", score_col_b]].rename(columns={score_col_b: "Report B"}),
+            on="Model", how="outer",
+        ).fillna(0)
+
+        fig = go.Figure()
+        fig.add_bar(name="Report A", x=merged["Model"], y=merged["Report A"],
+                    marker_color="#4C9BE8", text=[f"{v:.1f}" for v in merged["Report A"]],
+                    textposition="outside")
+        fig.add_bar(name="Report B", x=merged["Model"], y=merged["Report B"],
+                    marker_color="#FF6B35", text=[f"{v:.1f}" for v in merged["Report B"]],
+                    textposition="outside")
+        fig.update_layout(
+            barmode="group", title="Report A vs Report B",
+            plot_bgcolor="#0e1117", paper_bgcolor="#0e1117",
+            font_color="#fafafa", height=380,
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  PAGE: HISTORY
+# ══════════════════════════════════════════════════════════════════════════════
+
+def page_history():
+    st.header("Results History")
+
+    files = sorted(RESULTS_DIR.glob("*.txt"), reverse=True)
+    if not files:
+        st.info("No results yet.")
+        return
+
+    rows = []
+    for f in files:
+        btype = detect_benchmark_type(f.name).replace("_", " ").title()
+        mtime = datetime.fromtimestamp(f.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
+        size  = f"{f.stat().st_size // 1024} KB"
+        rows.append({"File": f.name, "Type": btype, "Date": mtime, "Size": size})
+
+    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+    st.caption(f"{len(files)} result files in `{RESULTS_DIR}`")
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  APP LAYOUT
+# ══════════════════════════════════════════════════════════════════════════════
+
+st.set_page_config(
+    page_title="LLM Benchmark Dashboard",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+st.markdown("""
+<style>
+    [data-testid="stMetricValue"]  { font-size: 1.8rem; font-weight: 700; }
+    [data-testid="stMetricLabel"]  { font-size: 0.9rem; color: #aaa; }
+    .block-container               { padding-top: 1.5rem; }
+</style>
+""", unsafe_allow_html=True)
+
+with st.sidebar:
+    st.title("📊 LLM Benchmarks")
+    st.caption("AI-End-to-End Project")
+    st.divider()
+    page = st.radio(
+        "Navigation",
+        ["▶  Run Benchmarks", "📈  View Results", "⚖  Compare", "🗂  History"],
+        label_visibility="collapsed",
+    )
+    st.divider()
+    files = sorted(RESULTS_DIR.glob("*.txt"), reverse=True)
+    st.caption(f"**{len(files)}** reports saved")
+    if files:
+        latest = files[0]
+        mtime  = datetime.fromtimestamp(latest.stat().st_mtime).strftime("%b %d, %H:%M")
+        st.caption(f"Latest: {latest.name[:30]}…\n{mtime}")
+
+if   page == "▶  Run Benchmarks": page_run()
+elif page == "📈  View Results":   page_results()
+elif page == "⚖  Compare":        page_compare()
+elif page == "🗂  History":        page_history()

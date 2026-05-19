@@ -1,0 +1,2944 @@
+========================================================================
+  REASONING RECOVERY BENCHMARK v2 — HARDER TRAPS
+========================================================================
+  Date        : 2026-05-17 16:57:32
+  Models      : Phi-4, Nemotron, Ministral
+  Problems    : 15
+  Difficulty  : Medium / Hard / Very Hard
+========================================================================
+
+SUMMARY COMPARISON
+------------------------------------------------------------------------
+  Model                Accuracy   Clean   Recovered   False   Missed   Avg Tok
+------------------------------------------------------------------------
+  Phi-4                   73.3%      10           1       0        4     656.5
+  Nemotron                73.3%      11           0       1        3     794.3
+  Ministral               86.7%       8           5       2        0    1004.7
+------------------------------------------------------------------------
+
+========================================================================
+  MODEL: Phi-4   (microsoft/phi-4)
+------------------------------------------------------------------------
+  Overall accuracy         : 11/15 (73.3%)
+  Solved cleanly           : 10
+  Self-corrected (success) : 1
+  False recovery           : 0
+  Wrong, never noticed     : 4
+  Avg recovery position    : 2.7% through response
+  Avg latency              : 10183.4 ms
+  Avg tokens               : 656.5
+
+  By Difficulty:
+    Medium       5/6 (83.3%)
+    Hard         6/8 (75.0%)
+    Very Hard    0/1 (0.0%)
+
+  By Category:
+    Compounding Rate Trap                  2/2 (100.0%)
+    Embedded Contradiction Trap            1/2 (50.0%)
+    Rate and Work Trap                     2/2 (100.0%)
+    Sequence and Pattern Trap              0/2 (0.0%)
+    Percentage and Proportion Trap         2/2 (100.0%)
+    Language and Logic Trap                1/2 (50.0%)
+    Spatial Reasoning Trap                 2/2 (100.0%)
+    Overcomplexity Trap                    1/1 (100.0%)
+
+========================================================================
+  MODEL: Nemotron   (nvidia/nemotron-3-super-120b-a12b)
+------------------------------------------------------------------------
+  Overall accuracy         : 11/15 (73.3%)
+  Solved cleanly           : 11
+  Self-corrected (success) : 0
+  False recovery           : 1
+  Wrong, never noticed     : 3
+  Avg recovery position    : 17.3% through response
+  Avg latency              : 19776.4 ms
+  Avg tokens               : 794.3
+
+  By Difficulty:
+    Medium       5/6 (83.3%)
+    Hard         6/8 (75.0%)
+    Very Hard    0/1 (0.0%)
+
+  By Category:
+    Compounding Rate Trap                  1/2 (50.0%)
+    Embedded Contradiction Trap            1/2 (50.0%)
+    Rate and Work Trap                     2/2 (100.0%)
+    Sequence and Pattern Trap              1/2 (50.0%)
+    Percentage and Proportion Trap         2/2 (100.0%)
+    Language and Logic Trap                1/2 (50.0%)
+    Spatial Reasoning Trap                 2/2 (100.0%)
+    Overcomplexity Trap                    1/1 (100.0%)
+
+========================================================================
+  MODEL: Ministral   (mistralai/ministral-14b-2512)
+------------------------------------------------------------------------
+  Overall accuracy         : 13/15 (86.7%)
+  Solved cleanly           : 8
+  Self-corrected (success) : 5
+  False recovery           : 2
+  Wrong, never noticed     : 0
+  Avg recovery position    : 29.0% through response
+  Avg latency              : 9077.3 ms
+  Avg tokens               : 1004.7
+
+  By Difficulty:
+    Medium       6/6 (100.0%)
+    Hard         7/8 (87.5%)
+    Very Hard    0/1 (0.0%)
+
+  By Category:
+    Compounding Rate Trap                  2/2 (100.0%)
+    Embedded Contradiction Trap            1/2 (50.0%)
+    Rate and Work Trap                     2/2 (100.0%)
+    Sequence and Pattern Trap              1/2 (50.0%)
+    Percentage and Proportion Trap         2/2 (100.0%)
+    Language and Logic Trap                2/2 (100.0%)
+    Spatial Reasoning Trap                 2/2 (100.0%)
+    Overcomplexity Trap                    1/1 (100.0%)
+
+========================================================================
+  DETAILED QUESTION RESPONSES
+========================================================================
+
+────────────────────────────────────────────────────────────────────────
+  Phi-4
+────────────────────────────────────────────────────────────────────────
+
+  [v2_01] [Medium] Compounding Rate Trap
+  Question        : A bacteria colony doubles every 3 hours. At 12:00 noon, the colony fills exactly half the petri dish. At what time will the dish be completely full? Show your reasoning.
+  Correct Answer  : 3:00 pm
+  Trap            : Models calculate forward from noon instead of realising: if it doubles every 3 hours and is half full at noon, it will be full in exactly ONE more doubling period — 3pm.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 5971.7ms | 357 tokens
+  Response:
+    To solve this problem, we need to determine when the petri dish will be completely full given that the bacteria colony doubles every 3 hours and fills half the dish at 12:00 noon.
+    
+    Let's break down the problem step by step:
+    
+    1. **Understanding the Doubling Process**: 
+       - The bacteria colony doubles every 3 hours. This means that if the colony fills half the dish at 12:00 noon, it will fill the entire dish in the next doubling period.
+    
+    2. **Current State at 12:00 Noon**:
+       - At 12:00 noon, the colony fills half the petri dish.
+    
+    3. **Next Doubling Period**:
+       - Since the colony doubles every 3 hours, the next doubling period will occur at 3:00 PM (3 hours after 12:00 noon).
+    
+    4. **Full Dish Calculation**:
+       - At 3:00 PM, the colony will double from half full to completely full. This is because doubling half the dish results in a full dish.
+    
+    5. **Conclusion**:
+       - The petri dish will be completely full at 3:00 PM.
+    
+    Thus, the dish will be completely full at 3:00 PM.
+
+  [v2_02] [Hard] Compounding Rate Trap
+  Question        : A car depreciates by 20% each year. After how many years will the car be worth less than 40% of its original value? Show your calculations year by year.
+  Correct Answer  : 5
+  Trap            : Models apply 20% per year linearly (thinking 2 years = 40% loss) rather than compounding. After year 1: 80%, year 2: 64%, year 3: 51.2%, year 4: 40.96% — so the answer is 5 years not 3.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 10065.5ms | 592 tokens
+  Response:
+    To solve this problem, we need to determine after how many years the value of the car will be less than 40% of its original value, given that it depreciates by 20% each year.
+    
+    Let's denote the original value of the car as \( V_0 \).
+    
+    Each year, the car retains 80% of its value from the previous year because it depreciates by 20%. Therefore, the value of the car after \( n \) years, \( V_n \), can be expressed as:
+    
+    \[
+    V_n = V_0 \times (0.8)^n
+    \]
+    
+    We want to find the smallest integer \( n \) such that:
+    
+    \[
+    V_n < 0.4 \times V_0
+    \]
+    
+    Substituting the expression for \( V_n \):
+    
+    \[
+    V_0 \times (0.8)^n < 0.4 \times V_0
+    \]
+    
+    We can divide both sides by \( V_0 \) (assuming \( V_0 \neq 0 \)):
+    
+    \[
+    (0.8)^n < 0.4
+    \]
+    
+    Now, we will calculate \( (0.8)^n \) year by year until it is less than 0.4.
+    
+    - **Year 0:**
+      \[
+      (0.8)^0 = 1
+      \]
+    
+    - **Year 1:**
+      \[
+      (0.8)^1 = 0.8
+      \]
+    
+    - **Year 2:**
+      \[
+      (0.8)^2 = 0.64
+      \]
+    
+    - **Year 3:**
+      \[
+      (0.8)^3 = 0.512
+      \]
+    
+    - **Year 4:**
+      \[
+      (0.8)^4 = 0.4096
+      \]
+    
+    - **Year 5:**
+      \[
+      (0.8)^5 = 0.32768
+      \]
+    
+    At year 5, \( (0.8)^5 = 0.32768 \), which is less than 0.4. Therefore, after 5 years, the car will be worth less than 40% of its original value.
+    
+    Thus, the car will be worth less than 40% of its original value after **5 years**.
+
+  [v2_03] [Hard] Embedded Contradiction Trap
+  Question        : A ladder is leaning against a wall. The base of the ladder is 6 feet from the wall. The top of the ladder reaches 8 feet up the wall. The ladder is 11 feet long. What angle does the ladder make with the ground? Show your working.
+  Correct Answer  : impossible
+  Trap            : Models calculate the angle using 6 and 8 without checking: a 6-8 ladder should be 10 feet (Pythagoras), not 11. The problem has an internal inconsistency. A correct model should flag this.
+  Result          : ✗ WRONG
+  Recovery Type   : wrong_no_signal
+  Latency/Tokens  : 9082.4ms | 651 tokens
+  Response:
+    To solve this problem, we need to determine the angle \(\theta\) that the ladder makes with the ground. We can use trigonometry to find this angle. The ladder, the wall, and the ground form a right triangle, where:
+    
+    - The ladder is the hypotenuse of the triangle, with a length of 11 feet.
+    - The distance from the wall to the base of the ladder is one leg of the triangle, with a length of 6 feet.
+    - The height up the wall that the ladder reaches is the other leg of the triangle, with a length of 8 feet.
+    
+    First, let's verify that these measurements form a right triangle using the Pythagorean theorem:
+    
+    \[
+    a^2 + b^2 = c^2
+    \]
+    
+    where \(a\) and \(b\) are the legs of the triangle, and \(c\) is the hypotenuse.
+    
+    Substitute the given values:
+    
+    \[
+    6^2 + 8^2 = 11^2
+    \]
+    
+    Calculate each term:
+    
+    \[
+    36 + 64 = 121
+    \]
+    
+    \[
+    100 \neq 121
+    \]
+    
+    The calculations show that \(100 \neq 121\), which means the given measurements do not satisfy the Pythagorean theorem. Therefore, the ladder cannot be 11 feet long if it reaches 8 feet up the wall with its base 6 feet from the wall. There is an inconsistency in the problem statement.
+    
+    To find the correct length of the ladder, we can recalculate using the Pythagorean theorem:
+    
+    \[
+    c = \sqrt{6^2 + 8^2} = \sqrt{36 + 64} = \sqrt{100} = 10
+    \]
+    
+    The correct length of the ladder should be 10 feet, not 11 feet.
+    
+    Now, let's find the angle \(\theta\) that the ladder makes with the ground using the correct ladder length. We can use the cosine function, which relates the adjacent side (base of the ladder) to the hypotenuse (ladder):
+    
+    \[
+    \cos(\theta) = \frac{\text{adjacent}}{\text{hypotenuse}} = \frac{6}{10} = 0.6
+    \]
+    
+    To find \(\theta\), take the inverse cosine:
+    
+    \[
+    \theta = \cos^{-1}(0.6)
+    \]
+    
+    Using a calculator:
+    
+    \[
+    \theta \approx 53.13^\circ
+    \]
+    
+    Thus, the angle that the ladder makes with the ground is approximately \(53.13^\circ\).
+
+  [v2_04] [Medium] Embedded Contradiction Trap
+  Question        : In a survey of 100 people: 60 people like coffee. 50 people like tea. 30 people like neither coffee nor tea. How many people like both coffee and tea? Show your working.
+  Correct Answer  : 40
+  Trap            : Models jump to inclusion-exclusion: Both = 60+50-70 = 40. But wait — 30 like neither, so 70 like at least one. Both = 60+50-70 = 40. This is actually correct but models often get confused with the 'neither' framing and use 100 instead of 70.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 6846.2ms | 581 tokens
+  Response:
+    To solve this problem, we need to determine how many people like both coffee and tea. We'll use the principle of inclusion-exclusion to find the solution.
+    
+    Let's define:
+    - \( C \) as the set of people who like coffee.
+    - \( T \) as the set of people who like tea.
+    - \( |C| \) as the number of people who like coffee.
+    - \( |T| \) as the number of people who like tea.
+    - \( |C \cup T| \) as the number of people who like either coffee or tea or both.
+    - \( |C \cap T| \) as the number of people who like both coffee and tea.
+    
+    From the problem, we have:
+    - \( |C| = 60 \) (people who like coffee)
+    - \( |T| = 50 \) (people who like tea)
+    - 30 people like neither coffee nor tea.
+    
+    First, let's find the number of people who like either coffee or tea or both. Since 30 people like neither, the number of people who like either or both is:
+    
+    \[ |C \cup T| = 100 - 30 = 70 \]
+    
+    Now, using the principle of inclusion-exclusion for two sets, we have:
+    
+    \[ |C \cup T| = |C| + |T| - |C \cap T| \]
+    
+    Substituting the known values:
+    
+    \[ 70 = 60 + 50 - |C \cap T| \]
+    
+    Solving for \( |C \cap T| \):
+    
+    \[ 70 = 110 - |C \cap T| \]
+    
+    \[ |C \cap T| = 110 - 70 \]
+    
+    \[ |C \cap T| = 40 \]
+    
+    Thus, 40 people like both coffee and tea. 
+    
+    Let's verify our assumptions and calculations:
+    - We assumed that the total number of people surveyed is 100.
+    - We calculated the number of people who like either coffee or tea or both as 70, which is consistent with the given data.
+    - The principle of inclusion-exclusion was applied correctly to find the number of people who like both coffee and tea.
+    
+    Therefore, the solution is consistent with the problem statement, and the number of people who like both coffee and tea is 40.
+
+  [v2_05] [Hard] Rate and Work Trap
+  Question        : Pipe A fills a tank in 4 hours. Pipe B fills the same tank in 6 hours. Pipe C drains the tank in 3 hours. If all three pipes are open simultaneously, will the tank ever be full? If yes, how long does it take? If no, explain why.
+  Correct Answer  : 12
+  Trap            : Models often just add rates: 1/4 + 1/6 - 1/3 = 3/12 + 2/12 - 4/12 = 1/12. Negative combined rate means the tank drains. Models often get the arithmetic wrong or give a positive time.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 10116.3ms | 667 tokens
+  Response:
+    To determine whether the tank will ever be full and, if so, how long it will take, we need to calculate the net rate at which the tank is being filled when all three pipes are open simultaneously.
+    
+    1. **Calculate the individual rates:**
+    
+       - Pipe A fills the tank in 4 hours. Therefore, its rate is \( \frac{1}{4} \) of the tank per hour.
+       - Pipe B fills the tank in 6 hours. Therefore, its rate is \( \frac{1}{6} \) of the tank per hour.
+       - Pipe C drains the tank in 3 hours. Therefore, its rate is \( -\frac{1}{3} \) of the tank per hour (negative because it is draining).
+    
+    2. **Calculate the net rate:**
+    
+       The net rate at which the tank is being filled when all three pipes are open is the sum of their individual rates:
+    
+       \[
+       \text{Net rate} = \frac{1}{4} + \frac{1}{6} - \frac{1}{3}
+       \]
+    
+    3. **Find a common denominator:**
+    
+       The common denominator for 4, 6, and 3 is 12. Convert each fraction:
+    
+       \[
+       \frac{1}{4} = \frac{3}{12}, \quad \frac{1}{6} = \frac{2}{12}, \quad \frac{1}{3} = \frac{4}{12}
+       \]
+    
+    4. **Calculate the net rate using the common denominator:**
+    
+       \[
+       \text{Net rate} = \frac{3}{12} + \frac{2}{12} - \frac{4}{12} = \frac{3 + 2 - 4}{12} = \frac{1}{12}
+       \]
+    
+    5. **Interpret the net rate:**
+    
+       The net rate of \( \frac{1}{12} \) means that the tank is being filled at a rate of \(\frac{1}{12}\) of the tank per hour.
+    
+    6. **Determine the time to fill the tank:**
+    
+       Since the net rate is positive, the tank will eventually be full. To find out how long it takes to fill the tank, calculate the reciprocal of the net rate:
+    
+       \[
+       \text{Time to fill the tank} = \frac{1}{\frac{1}{12}} = 12 \text{ hours}
+       \]
+    
+    Therefore, the tank will be full in 12 hours when all three pipes are open simultaneously.
+
+  [v2_06] [Hard] Rate and Work Trap
+  Question        : Alice can paint a house in 5 days. Bob can paint the same house in 7 days. They start painting together, but after 2 days Alice leaves and Bob finishes alone. How many total days does it take to paint the house? Round to 1 decimal place.
+  Correct Answer  : 4.2
+  Trap            : Models forget that the 'total days' includes the 2 days Alice worked. They often give just Bob's remaining time.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 9210.3ms | 752 tokens
+  Response:
+    To solve this problem, we need to determine how much of the house Alice and Bob can paint together in 2 days, and then how long it takes Bob to finish the remaining portion alone.
+    
+    1. **Calculate Alice's and Bob's painting rates:**
+       - Alice can paint the entire house in 5 days, so her rate is \( \frac{1}{5} \) of the house per day.
+       - Bob can paint the entire house in 7 days, so his rate is \( \frac{1}{7} \) of the house per day.
+    
+    2. **Calculate their combined painting rate:**
+       - Together, Alice and Bob can paint \( \frac{1}{5} + \frac{1}{7} \) of the house per day.
+       - To find this combined rate, we need a common denominator for the fractions:
+         \[
+         \frac{1}{5} = \frac{7}{35}, \quad \frac{1}{7} = \frac{5}{35}
+         \]
+       - Therefore, their combined rate is:
+         \[
+         \frac{7}{35} + \frac{5}{35} = \frac{12}{35}
+         \]
+       - Together, they paint \( \frac{12}{35} \) of the house per day.
+    
+    3. **Calculate the portion of the house painted in 2 days:**
+       - In 2 days, they paint:
+         \[
+         2 \times \frac{12}{35} = \frac{24}{35}
+         \]
+       - This means \( \frac{24}{35} \) of the house is painted after 2 days.
+    
+    4. **Calculate the remaining portion of the house:**
+       - The remaining portion of the house to be painted is:
+         \[
+         1 - \frac{24}{35} = \frac{35}{35} - \frac{24}{35} = \frac{11}{35}
+         \]
+    
+    5. **Calculate how long it takes Bob to paint the remaining portion:**
+       - Bob paints at a rate of \( \frac{1}{7} \) of the house per day.
+       - To paint \( \frac{11}{35} \) of the house, Bob needs:
+         \[
+         \frac{\frac{11}{35}}{\frac{1}{7}} = \frac{11}{35} \times \frac{7}{1} = \frac{11}{5} = 2.2 \text{ days}
+         \]
+    
+    6. **Calculate the total time to paint the house:**
+       - They work together for 2 days, and Bob works alone for an additional 2.2 days.
+       - Total time taken is:
+         \[
+         2 + 2.2 = 4.2 \text{ days}
+         \]
+    
+    Thus, the total time it takes to paint the house is \( \boxed{4.2} \) days.
+
+  [v2_07] [Very Hard] Sequence and Pattern Trap
+  Question        : What is the next number in this sequence: 1, 2, 3, 5, 8, 13, 21, 34, 56 ... Show your reasoning.
+  Correct Answer  : there is an error in the sequence
+  Trap            : This looks like Fibonacci (where each = sum of previous two) but 56 is wrong — it should be 55 (21+34=55 not 56). Models trained on Fibonacci will say 89 or 90 without catching the error in the sequence.
+  Result          : ✗ WRONG
+  Recovery Type   : wrong_no_signal
+  Latency/Tokens  : 12733.3ms | 603 tokens
+  Response:
+    To determine the next number in the sequence, let's first examine the pattern in the given numbers: 1, 2, 3, 5, 8, 13, 21, 34, 56.
+    
+    1. **Identify the Pattern:**
+       - Start by checking if the sequence follows a known pattern, such as an arithmetic or geometric sequence.
+       - Calculate the differences between consecutive terms:
+         - \(2 - 1 = 1\)
+         - \(3 - 2 = 1\)
+         - \(5 - 3 = 2\)
+         - \(8 - 5 = 3\)
+         - \(13 - 8 = 5\)
+         - \(21 - 13 = 8\)
+         - \(34 - 21 = 13\)
+         - \(56 - 34 = 22\)
+    
+    2. **Analyze the Differences:**
+       - The differences are: 1, 1, 2, 3, 5, 8, 13, 22.
+       - These differences resemble the Fibonacci sequence, where each term is the sum of the two preceding ones: 1, 1, 2, 3, 5, 8, 13, 21, ...
+    
+    3. **Check for Consistency:**
+       - The differences should follow the Fibonacci sequence: 1, 1, 2, 3, 5, 8, 13, 21, ...
+       - Notice that the last difference calculated was 22, but according to the Fibonacci sequence, it should be 21.
+    
+    4. **Identify the Error:**
+       - The term 56 is incorrect if the sequence is supposed to follow the Fibonacci pattern.
+       - The correct term after 34 should be \(34 + 21 = 55\).
+    
+    5. **Correct the Sequence:**
+       - The corrected sequence should be: 1, 2, 3, 5, 8, 13, 21, 34, 55.
+    
+    6. **Find the Next Term:**
+       - Continue the pattern using the Fibonacci sequence for differences:
+       - The next difference should be \(13 + 21 = 34\).
+       - Add this difference to the last correct term: \(55 + 34 = 89\).
+    
+    Therefore, the next number in the corrected sequence is 89.
+
+  [v2_08] [Medium] Sequence and Pattern Trap
+  Question        : A snail climbs 3 feet up a 30-foot well during the day and slides back 2 feet at night. On which day does the snail first reach the top? Show your day-by-day reasoning.
+  Correct Answer  : 28
+  Trap            : Models often say 30 days (30-2=28 net... wait no). The snail climbs 1 foot net per day, but on the final day it reaches 30 before sliding. Net per day = 1ft. After 27 days it is at 27ft. Day 28: climbs to 30ft and escapes — does not slide back.
+  Result          : ✗ WRONG
+  Recovery Type   : wrong_no_signal
+  Latency/Tokens  : 26017.6ms | 1611 tokens
+  Response:
+    To solve this problem, we need to track the snail's progress day by day, considering both its upward climb during the day and its slide back at night. The goal is to determine on which day the snail first reaches the top of the 30-foot well.
+    
+    ### Day-by-Day Progress:
+    
+    1. **Day 1:**
+       - During the day, the snail climbs 3 feet.
+       - At night, it slides back 2 feet.
+       - Net progress: \(3 - 2 = 1\) foot.
+       - Position at the end of Day 1: 1 foot.
+    
+    2. **Day 2:**
+       - During the day, the snail climbs another 3 feet, reaching 4 feet.
+       - At night, it slides back 2 feet.
+       - Net progress: \(3 - 2 = 1\) foot.
+       - Position at the end of Day 2: 3 feet.
+    
+    3. **Day 3:**
+       - During the day, the snail climbs to 6 feet.
+       - At night, it slides back to 4 feet.
+       - Net progress: \(3 - 2 = 1\) foot.
+       - Position at the end of Day 3: 4 feet.
+    
+    4. **Day 4:**
+       - During the day, the snail climbs to 7 feet.
+       - At night, it slides back to 5 feet.
+       - Net progress: \(3 - 2 = 1\) foot.
+       - Position at the end of Day 4: 5 feet.
+    
+    5. **Day 5:**
+       - During the day, the snail climbs to 8 feet.
+       - At night, it slides back to 6 feet.
+       - Net progress: \(3 - 2 = 1\) foot.
+       - Position at the end of Day 5: 6 feet.
+    
+    6. **Day 6:**
+       - During the day, the snail climbs to 9 feet.
+       - At night, it slides back to 7 feet.
+       - Net progress: \(3 - 2 = 1\) foot.
+       - Position at the end of Day 6: 7 feet.
+    
+    7. **Day 7:**
+       - During the day, the snail climbs to 10 feet.
+       - At night, it slides back to 8 feet.
+       - Net progress: \(3 - 2 = 1\) foot.
+       - Position at the end of Day 7: 8 feet.
+    
+    8. **Day 8:**
+       - During the day, the snail climbs to 11 feet.
+       - At night, it slides back to 9 feet.
+       - Net progress: \(3 - 2 = 1\) foot.
+       - Position at the end of Day 8: 9 feet.
+    
+    9. **Day 9:**
+       - During the day, the snail climbs to 12 feet.
+       - At night, it slides back to 10 feet.
+       - Net progress: \(3 - 2 = 1\) foot.
+       - Position at the end of Day 9: 10 feet.
+    
+    10. **Day 10:**
+        - During the day, the snail climbs to 13 feet.
+        - At night, it slides back to 11 feet.
+        - Net progress: \(3 - 2 = 1\) foot.
+        - Position at the end of Day 10: 11 feet.
+    
+    11. **Day 11:**
+        - During the day, the snail climbs to 14 feet.
+        - At night, it slides back to 12 feet.
+        - Net progress: \(3 - 2 = 1\) foot.
+        - Position at the end of Day 11: 12 feet.
+    
+    12. **Day 12:**
+        - During the day, the snail climbs to 15 feet.
+        - At night, it slides back to 13 feet.
+        - Net progress: \(3 - 2 = 1\) foot.
+        - Position at the end of Day 12: 13 feet.
+    
+    13. **Day 13:**
+        - During the day, the snail climbs to 16 feet.
+        - At night, it slides back to 14 feet.
+        - Net progress: \(3 - 2 = 1\) foot.
+        - Position at the end of Day 13: 14 feet.
+    
+    14. **Day 14:**
+        - During the day, the snail climbs to 17 feet.
+        - At night, it slides back to 15 feet.
+        - Net progress: \(3 - 2 = 1\) foot.
+        - Position at the end of Day 14: 15 feet.
+    
+    15. **Day 15:**
+        - During the day, the snail climbs to 18 feet.
+        - At night, it slides back to 16 feet.
+        - Net progress: \(3 - 2 = 1\) foot.
+        - Position at the end of Day 15: 16 feet.
+    
+    16. **Day 16:**
+        - During the day, the snail climbs to 19 feet.
+        - At night, it slides back to 17 feet.
+        - Net progress: \(3 - 2 = 1\) foot.
+        - Position at the end of Day 16: 17 feet.
+    
+    17. **Day 17:**
+        - During the day, the snail climbs to 20 feet.
+        - At night, it slides back to 18 feet.
+        - Net progress: \(3 - 2 = 1\) foot.
+        - Position at the end of Day 17: 18 feet.
+    
+    18. **Day 18:**
+        - During the day, the snail climbs to 21 feet.
+        - At night, it slides back to 19 feet.
+        - Net progress: \(3 - 2 = 1\) foot.
+        - Position at the end of Day 18: 19 feet.
+    
+    19. **Day 19:**
+        - During the day, the snail climbs to 22 feet.
+        - At night, it slides back to 20 feet.
+        - Net progress: \(3 - 2 = 1\) foot.
+        - Position at the end of Day 19: 20 feet.
+    
+    20. **Day 20:**
+        - During the day, the snail climbs to 23 feet.
+        - At night, it slides back to 21 feet.
+        - Net progress: \(3 - 2 = 1\) foot.
+        - Position at the end of Day 20: 21 feet.
+    
+    21. **Day 21:**
+        - During the day, the snail climbs to 24 feet.
+        - At night, it slides back to 22 feet.
+        - Net progress: \(3 - 2 = 1\) foot.
+        - Position at the end of Day 21: 22 feet.
+    
+    22. **Day 22:**
+        - During the day, the snail climbs to 25 feet.
+        - At night, it slides
+
+  [v2_09] [Hard] Percentage and Proportion Trap
+  Question        : A shop increases its price by 25% on Monday. On Tuesday it decreases the new price by 25%. On Wednesday it increases the Tuesday price by 25% again. On Thursday it decreases the Wednesday price by 25%. If the original price was $100, what is the final price on Thursday? Show all steps.
+  Correct Answer  : 87.89
+  Trap            : Models think +25% -25% cancels out. It doesn't. Each cycle: 100 * 1.25 * 0.75 = 93.75. Two cycles: 100 * (1.25*0.75)² = 100 * 0.9375² = 87.89.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_recovered
+  Signal Words    : 'careful' @word7
+  Recovery At     : 2.7% through response
+  Latency/Tokens  : 8231.3ms | 594 tokens
+  Response:
+    To solve this problem, we need to carefully track the price changes day by day, starting from the original price of $100.
+    
+    **Monday:**
+    - The shop increases the price by 25%.
+    - New price = Original price + 25% of Original price
+    - New price = $100 + 0.25 × $100 = $100 + $25 = $125
+    
+    **Tuesday:**
+    - The shop decreases the new price by 25%.
+    - New price = Monday's price - 25% of Monday's price
+    - New price = $125 - 0.25 × $125 = $125 - $31.25 = $93.75
+    
+    **Wednesday:**
+    - The shop increases the Tuesday price by 25%.
+    - New price = Tuesday's price + 25% of Tuesday's price
+    - New price = $93.75 + 0.25 × $93.75 = $93.75 + $23.4375 = $117.1875
+    
+    **Thursday:**
+    - The shop decreases the Wednesday price by 25%.
+    - New price = Wednesday's price - 25% of Wednesday's price
+    - New price = $117.1875 - 0.25 × $117.1875 = $117.1875 - $29.296875 = $87.890625
+    
+    Thus, the final price on Thursday is $87.89 (rounded to two decimal places).
+    
+    Let's verify each step to ensure accuracy:
+    
+    1. **Monday's Calculation:**
+       - Increase by 25%: \( 100 \times 1.25 = 125 \)
+    
+    2. **Tuesday's Calculation:**
+       - Decrease by 25%: \( 125 \times 0.75 = 93.75 \)
+    
+    3. **Wednesday's Calculation:**
+       - Increase by 25%: \( 93.75 \times 1.25 = 117.1875 \)
+    
+    4. **Thursday's Calculation:**
+       - Decrease by 25%: \( 117.1875 \times 0.75 = 87.890625 \)
+    
+    Each step confirms the calculations are correct. Therefore, the final price on Thursday is indeed $87.89.
+
+  [v2_10] [Hard] Percentage and Proportion Trap
+  Question        : In a room, 70% of people are wearing hats. Of those wearing hats, 40% are also wearing glasses. Of those NOT wearing hats, 80% are wearing glasses. What percentage of the total people in the room are wearing glasses? Show your working.
+  Correct Answer  : 52
+  Trap            : Models average the percentages: (40+80)/2 = 60%. Wrong. Need to weight by proportion: 0.7*0.4 + 0.3*0.8 = 0.28 + 0.24 = 0.52 = 52%.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 7566.7ms | 547 tokens
+  Response:
+    To solve this problem, we need to calculate the percentage of people in the room who are wearing glasses. We'll break it down step by step.
+    
+    1. **Define the total number of people in the room:**
+       Let's assume there are 100 people in the room for simplicity. This assumption will make it easier to calculate percentages.
+    
+    2. **Calculate the number of people wearing hats:**
+       - 70% of the people are wearing hats.
+       - Therefore, the number of people wearing hats is \( 70\% \times 100 = 70 \) people.
+    
+    3. **Calculate the number of people not wearing hats:**
+       - The remaining 30% are not wearing hats.
+       - Therefore, the number of people not wearing hats is \( 30\% \times 100 = 30 \) people.
+    
+    4. **Calculate the number of people wearing glasses among those wearing hats:**
+       - 40% of the people wearing hats are also wearing glasses.
+       - Therefore, the number of people wearing both hats and glasses is \( 40\% \times 70 = 28 \) people.
+    
+    5. **Calculate the number of people wearing glasses among those not wearing hats:**
+       - 80% of the people not wearing hats are wearing glasses.
+       - Therefore, the number of people wearing glasses but not hats is \( 80\% \times 30 = 24 \) people.
+    
+    6. **Calculate the total number of people wearing glasses:**
+       - Add the number of people wearing glasses among those wearing hats and those not wearing hats.
+       - Total number of people wearing glasses = \( 28 + 24 = 52 \) people.
+    
+    7. **Calculate the percentage of the total people in the room who are wearing glasses:**
+       - Since we assumed there are 100 people in the room, the percentage of people wearing glasses is \( \frac{52}{100} \times 100\% = 52\% \).
+    
+    Therefore, 52% of the total people in the room are wearing glasses.
+
+  [v2_11] [Medium] Language and Logic Trap
+  Question        : A box contains red and blue marbles. The ratio of red to blue is 3:2. If 10 red marbles are removed, the ratio becomes 1:2. How many blue marbles are in the box? Show your working.
+  Correct Answer  : 10
+  Trap            : Models set up wrong equation. Let red=3x, blue=2x. After removal: (3x-10)/(2x) = 1/2. Cross multiply: 6x-20=2x. 4x=20. x=5. Red=15, Blue=10. But check: (15-10)/10 = 5/10 = 1/2 ✓
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 7667.4ms | 641 tokens
+  Response:
+    To solve this problem, we need to determine the number of blue marbles in the box based on the given ratios before and after removing some red marbles.
+    
+    Let's denote:
+    - \( r \) as the initial number of red marbles.
+    - \( b \) as the initial number of blue marbles.
+    
+    Initially, the ratio of red to blue marbles is given as 3:2. This can be expressed as:
+    \[
+    \frac{r}{b} = \frac{3}{2}
+    \]
+    From this, we can write the equation:
+    \[
+    2r = 3b
+    \]
+    or equivalently:
+    \[
+    r = \frac{3}{2}b
+    \]
+    
+    After removing 10 red marbles, the ratio becomes 1:2. This can be expressed as:
+    \[
+    \frac{r - 10}{b} = \frac{1}{2}
+    \]
+    From this, we can write the equation:
+    \[
+    2(r - 10) = b
+    \]
+    or equivalently:
+    \[
+    2r - 20 = b
+    \]
+    
+    Now we have two equations:
+    1. \( r = \frac{3}{2}b \)
+    2. \( 2r - 20 = b \)
+    
+    We can substitute the expression for \( r \) from the first equation into the second equation:
+    \[
+    2\left(\frac{3}{2}b\right) - 20 = b
+    \]
+    Simplifying the left side:
+    \[
+    3b - 20 = b
+    \]
+    
+    Subtract \( b \) from both sides:
+    \[
+    3b - b = 20
+    \]
+    \[
+    2b = 20
+    \]
+    
+    Divide both sides by 2:
+    \[
+    b = 10
+    \]
+    
+    Thus, the initial number of blue marbles in the box is \( \boxed{10} \).
+    
+    To verify, substitute \( b = 10 \) back into the equation for \( r \):
+    \[
+    r = \frac{3}{2} \times 10 = 15
+    \]
+    
+    Initially, there are 15 red marbles and 10 blue marbles. After removing 10 red marbles, there are 5 red marbles left. The new ratio is:
+    \[
+    \frac{5}{10} = \frac{1}{2}
+    \]
+    
+    This confirms the solution is consistent with the problem statement. Therefore, the number of blue marbles in the box is indeed \( \boxed{10} \).
+
+  [v2_12] [Hard] Language and Logic Trap
+  Question        : Every student in a class passed at least one of two exams: Maths or English. 13 students passed Maths. 11 students passed English. 4 students passed both. How many students are in the class? Now — if one more student joins who failed BOTH exams, what fraction of the class passed at least one exam? Show all working.
+  Correct Answer  : 20/21
+  Trap            : Two-part problem. Part 1: 13+11-4=20 students. Part 2: models forget to add the new student to total — they keep 20 as denominator. Correct: 20/(20+1) = 20/21.
+  Result          : ✗ WRONG
+  Recovery Type   : wrong_no_signal
+  Latency/Tokens  : 6902.8ms | 615 tokens
+  Response:
+    To solve this problem, we need to determine the total number of students in the class initially and then calculate the fraction of students who passed at least one exam after a new student joins.
+    
+    ### Step 1: Determine the initial number of students in the class
+    
+    We are given:
+    - 13 students passed the Maths exam.
+    - 11 students passed the English exam.
+    - 4 students passed both exams.
+    
+    Using the principle of inclusion-exclusion, we can find the total number of students who passed at least one exam:
+    
+    \[
+    |A \cup B| = |A| + |B| - |A \cap B|
+    \]
+    
+    Where:
+    - \( |A| \) is the number of students who passed Maths.
+    - \( |B| \) is the number of students who passed English.
+    - \( |A \cap B| \) is the number of students who passed both exams.
+    
+    Substituting the given values:
+    
+    \[
+    |A \cup B| = 13 + 11 - 4 = 20
+    \]
+    
+    This means initially there are 20 students who passed at least one exam.
+    
+    ### Step 2: Calculate the total number of students in the class
+    
+    Since every student passed at least one exam, the initial number of students in the class is equal to the number of students who passed at least one exam:
+    
+    \[
+    \text{Initial number of students} = 20
+    \]
+    
+    ### Step 3: Determine the new number of students in the class
+    
+    A new student joins who failed both exams. Therefore, the total number of students in the class becomes:
+    
+    \[
+    \text{New total number of students} = 20 + 1 = 21
+    \]
+    
+    ### Step 4: Calculate the fraction of students who passed at least one exam after the new student joins
+    
+    The number of students who passed at least one exam remains 20, as the new student failed both exams. Therefore, the fraction of students who passed at least one exam is:
+    
+    \[
+    \text{Fraction} = \frac{\text{Number of students who passed at least one exam}}{\text{Total number of students in the class}} = \frac{20}{21}
+    \]
+    
+    Thus, the fraction of the class that passed at least one exam after the new student joins is \(\frac{20}{21}\).
+
+  [v2_13] [Medium] Spatial Reasoning Trap
+  Question        : A cube has a surface area of 150 square centimetres. What is the length of its diagonal from one corner to the opposite corner? Round to 2 decimal places. Show your working.
+  Correct Answer  : 8.66
+  Trap            : Models often calculate edge diagonal (√2 × side) instead of space diagonal (√3 × side). Surface area = 6s² = 150, so s²=25, s=5. Space diagonal = 5√3 = 8.66.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 6642.8ms | 464 tokens
+  Response:
+    To find the length of the diagonal of a cube given its surface area, we can follow these steps:
+    
+    1. **Understand the relationship between surface area and side length:**
+    
+       The surface area \( S \) of a cube with side length \( a \) is given by:
+       \[
+       S = 6a^2
+       \]
+       We are given that the surface area is 150 square centimeters:
+       \[
+       6a^2 = 150
+       \]
+    
+    2. **Solve for the side length \( a \):**
+    
+       Divide both sides by 6 to solve for \( a^2 \):
+       \[
+       a^2 = \frac{150}{6} = 25
+       \]
+       Take the square root of both sides to find \( a \):
+       \[
+       a = \sqrt{25} = 5
+       \]
+    
+    3. **Find the length of the diagonal of the cube:**
+    
+       The diagonal \( d \) of a cube from one corner to the opposite corner can be found using the formula:
+       \[
+       d = a\sqrt{3}
+       \]
+       Substitute \( a = 5 \) into the formula:
+       \[
+       d = 5\sqrt{3}
+       \]
+    
+    4. **Calculate the numerical value of the diagonal:**
+    
+       Use the approximate value of \(\sqrt{3} \approx 1.732\):
+       \[
+       d = 5 \times 1.732 = 8.66
+       \]
+    
+    Thus, the length of the diagonal from one corner to the opposite corner of the cube is approximately \( 8.66 \) centimeters, rounded to two decimal places.
+
+  [v2_14] [Medium] Spatial Reasoning Trap
+  Question        : You fold a piece of paper in half 7 times. The original paper is 0.1mm thick. How thick is the folded paper in centimetres? Show your calculations.
+  Correct Answer  : 1.28
+  Trap            : Models calculate 0.1 × 7 = 0.7mm (linear) instead of 0.1 × 2^7 = 12.8mm = 1.28cm (exponential).
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 8492.1ms | 608 tokens
+  Response:
+    To solve this problem, we need to calculate the thickness of the paper after it has been folded in half 7 times. Each time you fold the paper in half, the thickness doubles. Let's go through the calculations step by step:
+    
+    1. **Initial Thickness**: The original thickness of the paper is 0.1 mm.
+    
+    2. **First Fold**: 
+       - After the first fold, the thickness doubles: \(0.1 \, \text{mm} \times 2 = 0.2 \, \text{mm}\).
+    
+    3. **Second Fold**: 
+       - After the second fold, the thickness doubles again: \(0.2 \, \text{mm} \times 2 = 0.4 \, \text{mm}\).
+    
+    4. **Third Fold**: 
+       - After the third fold, the thickness doubles again: \(0.4 \, \text{mm} \times 2 = 0.8 \, \text{mm}\).
+    
+    5. **Fourth Fold**: 
+       - After the fourth fold, the thickness doubles again: \(0.8 \, \text{mm} \times 2 = 1.6 \, \text{mm}\).
+    
+    6. **Fifth Fold**: 
+       - After the fifth fold, the thickness doubles again: \(1.6 \, \text{mm} \times 2 = 3.2 \, \text{mm}\).
+    
+    7. **Sixth Fold**: 
+       - After the sixth fold, the thickness doubles again: \(3.2 \, \text{mm} \times 2 = 6.4 \, \text{mm}\).
+    
+    8. **Seventh Fold**: 
+       - After the seventh fold, the thickness doubles again: \(6.4 \, \text{mm} \times 2 = 12.8 \, \text{mm}\).
+    
+    Now, we need to convert the final thickness from millimeters to centimeters. Since 1 centimeter equals 10 millimeters, we convert 12.8 mm to centimeters:
+    
+    \[ 12.8 \, \text{mm} = \frac{12.8}{10} \, \text{cm} = 1.28 \, \text{cm} \]
+    
+    Thus, after folding the paper in half 7 times, the thickness of the folded paper is 1.28 centimeters.
+
+  [v2_15] [Hard] Overcomplexity Trap
+  Question        : A train leaves Station A at 9:00am travelling at 80 km/h toward Station B. Another train leaves Station B at 9:00am travelling at 120 km/h toward Station A. The distance between Station A and B is 500 km. A fly starts at Station A at 9:00am and flies back and forth between the two trains at 200 km/h until the trains collide. How far does the fly travel in total? Show your reasoning.
+  Correct Answer  : 500
+  Trap            : Models attempt to calculate each leg of the fly's journey (infinite series). The trick is: trains close at 200km/h combined speed, meet in 500/200 = 2.5 hours. Fly travels 200 × 2.5 = 500km.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 17205.2ms | 564 tokens
+  Response:
+    To solve this problem, we need to determine how long it takes for the two trains to collide and then calculate how far the fly travels during that time.
+    
+    ### Step 1: Determine the time until the trains collide.
+    
+    1. **Calculate the relative speed of the two trains:**
+    
+       - Train 1 travels from Station A to Station B at 80 km/h.
+       - Train 2 travels from Station B to Station A at 120 km/h.
+       - The relative speed of the two trains is the sum of their speeds: 
+         \[
+         80 \, \text{km/h} + 120 \, \text{km/h} = 200 \, \text{km/h}
+         \]
+    
+    2. **Calculate the time until collision:**
+    
+       - The distance between Station A and Station B is 500 km.
+       - Time until collision is given by the formula:
+         \[
+         \text{Time} = \frac{\text{Distance}}{\text{Relative Speed}} = \frac{500 \, \text{km}}{200 \, \text{km/h}} = 2.5 \, \text{hours}
+         \]
+    
+    ### Step 2: Calculate the distance the fly travels.
+    
+    1. **Determine the fly's speed and travel time:**
+    
+       - The fly travels at 200 km/h.
+       - The fly travels for the same duration as the time until the trains collide, which is 2.5 hours.
+    
+    2. **Calculate the total distance the fly travels:**
+    
+       - Distance traveled by the fly is given by:
+         \[
+         \text{Distance} = \text{Speed} \times \text{Time} = 200 \, \text{km/h} \times 2.5 \, \text{hours} = 500 \, \text{km}
+         \]
+    
+    Thus, the fly travels a total distance of 500 km.
+
+────────────────────────────────────────────────────────────────────────
+  Nemotron
+────────────────────────────────────────────────────────────────────────
+
+  [v2_01] [Medium] Compounding Rate Trap
+  Question        : A bacteria colony doubles every 3 hours. At 12:00 noon, the colony fills exactly half the petri dish. At what time will the dish be completely full? Show your reasoning.
+  Correct Answer  : 3:00 pm
+  Trap            : Models calculate forward from noon instead of realising: if it doubles every 3 hours and is half full at noon, it will be full in exactly ONE more doubling period — 3pm.
+  Result          : ✗ WRONG
+  Recovery Type   : wrong_no_signal
+  Latency/Tokens  : 11738.6ms | 359 tokens
+  Response:
+    The colony’s size doubles every 3 hours.
+    
+    - At 12:00 noon the dish is **½ full**.
+    - To become completely full, the colony must increase from ½ to 1, i.e., it must **double once**.
+    - One doubling takes the given doubling time: **3 hours**.
+    
+    Add 3 hours to 12:00 noon:
+    
+    \[
+    12{:}00 \text{ noon} + 3\text{ hours} = 3{:}00 \text{ PM}.
+    \]
+    
+    **Therefore, the petri dish will be completely full at 3:00 PM.**
+
+  [v2_02] [Hard] Compounding Rate Trap
+  Question        : A car depreciates by 20% each year. After how many years will the car be worth less than 40% of its original value? Show your calculations year by year.
+  Correct Answer  : 5
+  Trap            : Models apply 20% per year linearly (thinking 2 years = 40% loss) rather than compounding. After year 1: 80%, year 2: 64%, year 3: 51.2%, year 4: 40.96% — so the answer is 5 years not 3.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 28073.1ms | 691 tokens
+  Response:
+    The car’s value after each year is found by multiplying the previous year’s value by \(1-0.20 = 0.80\).
+    
+    Let \(V_0\) be the original value (100 %).  
+    After \(n\) years: \(V_n = V_0 \times (0.8)^n\).
+    
+    We need the smallest integer \(n\) for which \(V_n < 0.40\,V_0\) (i.e., \((0.8)^n < 0.40\)).
+    
+    | Year \(n\) | Calculation \((0.8)^n\) | Value as % of original |
+    |------------|------------------------|------------------------|
+    | 0          | \(1\)                  | 100 % |
+    | 1          | \(0.8\)                | 80 % |
+    | 2          | \(0.8^2 = 0.64\)       | 64 % |
+    | 3          | \(0.8^3 = 0.512\)      | 51.2 % |
+    | 4          | \(0.8^4 = 0.4096\)     | 40.96 % |
+    | 5          | \(0.8^5 = 0.32768\)    | 32.768 % |
+    
+    - After 4 years the car is still worth **40.96 %** of its original value, which is **above** the 40 % threshold.  
+    - After 5 years the value drops to **32.768 %**, which is **below** 40 %.
+    
+    Therefore, the car will be worth less than 40 % of its original value **after 5 years**.
+
+  [v2_03] [Hard] Embedded Contradiction Trap
+  Question        : A ladder is leaning against a wall. The base of the ladder is 6 feet from the wall. The top of the ladder reaches 8 feet up the wall. The ladder is 11 feet long. What angle does the ladder make with the ground? Show your working.
+  Correct Answer  : impossible
+  Trap            : Models calculate the angle using 6 and 8 without checking: a 6-8 ladder should be 10 feet (Pythagoras), not 11. The problem has an internal inconsistency. A correct model should flag this.
+  Result          : ✗ WRONG
+  Recovery Type   : wrong_no_signal
+  Latency/Tokens  : 39663.4ms | 1442 tokens
+  Response:
+    **Step 1 – Check the data for consistency**
+    
+    For a right‑triangle formed by the ladder, the wall and the ground we must have  
+    
+    \[
+    \text{(ladder length)}^{2}= \text{(distance from wall)}^{2}+ \text{(height up the wall)}^{2}.
+    \]
+    
+    Using the given base = 6 ft and height = 8 ft:
+    
+    \[
+    6^{2}+8^{2}=36+64=100\quad\Longrightarrow\quad \sqrt{100}=10\text{ ft}.
+    \]
+    
+    So, if the base and height are correct, the ladder should be **10 ft** long, not 11 ft.  
+    The three numbers (6 ft, 8 ft, 11 ft) cannot all be true simultaneously; they violate the Pythagorean theorem.
+    
+    **Step 2 – Decide which values to trust**
+    
+    The pair (6 ft, 8 ft) is a well‑known Pythagorean triple (6‑8‑10).  
+    It is far more likely that the ladder length was mis‑printed and should be 10 ft.  
+    Therefore we will compute the angle using the consistent base = 6 ft and height = 8 ft.
+    
+    **Step 3 – Compute the angle the ladder makes with the ground**
+    
+    Let \(\theta\) be the angle between the ladder and the ground (the angle at the base of the triangle).
+    
+    \[
+    \tan\theta = \frac{\text{opposite}}{\text{adjacent}} = \frac{\text{height}}{\text{distance from wall}} = \frac{8}{6}= \frac{4}{3}.
+    \]
+    
+    \[
+    \theta = \arctan\!\left(\frac{4}{3}\right).
+    \]
+    
+    Using a calculator:
+    
+    \[
+    \theta \approx 53.130102^\circ \;\approx\; 53^\circ.
+    \]
+    
+    (If one insisted on using the printed ladder length of 11 ft, the three possible angles would be  
+    \(\arccos(6/11)\approx56.9^\circ\), \(\arcsin(8/11)\approx46.7^\circ\), or \(\arctan(8/6)\approx53.1^\circ\); none of these satisfy all three given lengths simultaneously.)
+    
+    ---
+    
+    \[
+    \boxed{\theta \approx 53^\circ}
+    \]
+    
+    *Note:* The answer assumes the base (6 ft) and height (8 ft) are correct; the ladder length should therefore be 10 ft, not 11 ft. If the ladder length of 11 ft is taken as correct, the given base and height cannot both be accurate.
+
+  [v2_04] [Medium] Embedded Contradiction Trap
+  Question        : In a survey of 100 people: 60 people like coffee. 50 people like tea. 30 people like neither coffee nor tea. How many people like both coffee and tea? Show your working.
+  Correct Answer  : 40
+  Trap            : Models jump to inclusion-exclusion: Both = 60+50-70 = 40. But wait — 30 like neither, so 70 like at least one. Both = 60+50-70 = 40. This is actually correct but models often get confused with the 'neither' framing and use 100 instead of 70.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 3421.5ms | 544 tokens
+  Response:
+    
+    
+    **Step 1: Determine how many people like at least one of the drinks**  
+    
+    Total surveyed = 100  
+    People who like **neither** coffee nor tea = 30  
+    
+    \[
+    \text{People who like coffee or tea (or both)} = 100 - 30 = 70
+    \]
+    
+    **Step 2: Apply the inclusion‑exclusion principle**  
+    
+    Let  
+    
+    - \(C\) = set of people who like coffee, \(|C| = 60\)  
+    - \(T\) = set of people who like tea, \(|T| = 50\)  
+    - \(B\) = set of people who like both coffee and tea, \(|B| = ?\)
+    
+    The principle states:
+    
+    \[
+    |C \cup T| = |C| + |T| - |C \cap T|
+    \]
+    
+    We know \(|C \cup T| = 70\) (from Step 1). Plug in the known values:
+    
+    \[
+    70 = 60 + 50 - |B|
+    \]
+    
+    **Step 3: Solve for \(|B|\)**  
+    
+    \[
+    |B| = 60 + 50 - 70 = 110 - 70 = 40
+    \]
+    
+    ---
+    
+    \[
+    \boxed{40}
+    \]
+    
+    So, **40 people like both coffee and tea**.
+
+  [v2_05] [Hard] Rate and Work Trap
+  Question        : Pipe A fills a tank in 4 hours. Pipe B fills the same tank in 6 hours. Pipe C drains the tank in 3 hours. If all three pipes are open simultaneously, will the tank ever be full? If yes, how long does it take? If no, explain why.
+  Correct Answer  : 12
+  Trap            : Models often just add rates: 1/4 + 1/6 - 1/3 = 3/12 + 2/12 - 4/12 = 1/12. Negative combined rate means the tank drains. Models often get the arithmetic wrong or give a positive time.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 30263.6ms | 745 tokens
+  Response:
+    **Step 1: Determine each pipe’s rate (tank per hour)**  
+    
+    - Pipe A fills the tank in 4 h → rate \(= \frac{1}{4}\) tank/h.  
+    - Pipe B fills the tank in 6 h → rate \(= \frac{1}{6}\) tank/h.  
+    - Pipe C drains the tank in 3 h → rate \(= -\frac{1}{3}\) tank/h (negative because it removes water).
+    
+    **Step 2: Find the combined (net) rate when all three are open**
+    
+    \[
+    \text{Net rate}= \frac{1}{4}+\frac{1}{6}-\frac{1}{3}.
+    \]
+    
+    Use a common denominator of 12:
+    
+    \[
+    \frac{1}{4}= \frac{3}{12},\qquad 
+    \frac{1}{6}= \frac{2}{12},\qquad 
+    \frac{1}{3}= \frac{4}{12}.
+    \]
+    
+    \[
+    \text{Net rate}= \frac{3}{12}+\frac{2}{12}-\frac{4}{12}= \frac{1}{12}\ \text{tank per hour}.
+    \]
+    
+    The net rate is positive, meaning the tank gains water overall.
+    
+    **Step 3: Compute the time to fill the tank from empty**
+    
+    If the tank starts empty, the volume after \(t\) hours is
+    
+    \[
+    V(t)=\left(\frac{1}{12}\right)t.
+    \]
+    
+    Set \(V(t)=1\) (full tank) and solve for \(t\):
+    
+    \[
+    1 = \frac{1}{12}t \;\Longrightarrow\; t = 12\ \text{hours}.
+    \]
+    
+    **Conclusion**
+    
+    Yes, the tank will eventually become full. With all three pipes open simultaneously, it takes **12 hours** to fill the tank from empty.
+
+  [v2_06] [Hard] Rate and Work Trap
+  Question        : Alice can paint a house in 5 days. Bob can paint the same house in 7 days. They start painting together, but after 2 days Alice leaves and Bob finishes alone. How many total days does it take to paint the house? Round to 1 decimal place.
+  Correct Answer  : 4.2
+  Trap            : Models forget that the 'total days' includes the 2 days Alice worked. They often give just Bob's remaining time.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 2720.9ms | 718 tokens
+  Response:
+    
+    
+    Alice’s rate: \( \frac{1}{5} \) house/day  
+    Bob’s rate: \( \frac{1}{7} \) house/day  
+    
+    Combined rate: \( \frac{1}{5}+\frac{1}{7}= \frac{12}{35} \) house/day  
+    
+    Work done in the first 2 days:  
+    \( 2 \times \frac{12}{35}= \frac{24}{35} \) of the house  
+    
+    Remaining work:  
+    \( 1-\frac{24}{35}= \frac{11}{35} \) of the house  
+    
+    Time for Bob to finish alone:  
+    \( \frac{11/35}{1/7}= \frac{11}{35}\times7 = \frac{77}{35}= \frac{11}{5}=2.2 \) days  
+    
+    Total time: \( 2 + 2.2 = 4.2 \) days  
+    
+    Rounded to one decimal place: **4.2**.
+
+  [v2_07] [Very Hard] Sequence and Pattern Trap
+  Question        : What is the next number in this sequence: 1, 2, 3, 5, 8, 13, 21, 34, 56 ... Show your reasoning.
+  Correct Answer  : there is an error in the sequence
+  Trap            : This looks like Fibonacci (where each = sum of previous two) but 56 is wrong — it should be 55 (21+34=55 not 56). Models trained on Fibonacci will say 89 or 90 without catching the error in the sequence.
+  Result          : ✗ WRONG
+  Recovery Type   : false_recovery
+  Signal Words    : 'actually' @word137
+  Recovery At     : 17.3% through response
+  Latency/Tokens  : 34408.7ms | 1612 tokens
+  Response:
+    We need to find the next number in the sequence: 1, 2, 3, 5, 8, 13, 21, 34, 56, ...
+    
+    At first glance, it looks like Fibonacci: 1,2,3,5,8,13,21,34,... but after 34, the next Fibonacci would be 55 (34+21). However the given sequence has 56 instead of 55. So maybe it's something else.
+    
+    Let's examine differences: 2-1=1, 3-2=1, 5-3=2, 8-5=3, 13-8=5, 21-13=8, 34-21=13, 56-34=22. Differences: 1,1,2,3,5,8,13,22. Those differences themselves look like Fibonacci except the last difference is 22 instead of 21. So maybe the pattern is something like adding previous two terms but with some twist.
+    
+    Alternatively, maybe it's the sequence of numbers that are sum of previous two plus something? Let's see: Starting with 1,2. Then 3 = 1+2. 5 = 2+3. 8 = 3+5. 13 = 5+8. 21 = 8+13. 34 = 13+21. 56 = 21+34? Actually 21+34 = 55, but we have 56, which is +1. So maybe after a certain point we add 1? Or maybe it's something like each term is the sum of the two previous terms plus the index? Let's test: term n (starting n=1?) Let's index: a1=1, a2=2, a3=3, a4=5, a5=8, a6=13, a7=21, a8=34, a9=56.
+    
+    Check if a_n = a_{n-1} + a_{n-2} + f(n) where f(n) maybe something like floor((n-2)/something)? Let's compute the deviation from Fibonacci: For n>=3, Fibonacci-like sum would be a_{n-1}+a_{n-2}. Compute:
+    
+    n=3: a2+a1 = 2+1=3 matches a3=3 => deviation 0.
+    n=4: a3+a2 = 3+2=5 matches a4=5 => deviation 0.
+    n=5: a4+a3 =5+3=8 matches a5=8 => deviation 0.
+    n=6: a5+a4 =8+5=13 matches a6=13 => deviation 0.
+    n=7: a6+a5 =13+8=21 matches a7=21 => deviation 0.
+    n=8: a7+a6 =21+13=34 matches a8=34 => deviation 0.
+    n=9: a8+a7 =34+21=55 but a9=56 => deviation +1.
+    
+    So only at n=9 we have +1. Maybe the pattern changes after a certain point? Could be that the sequence is something like "number of ways to tile a board with dominoes and monominoes"? Not sure.
+    
+    Alternatively, maybe it's the sequence of numbers that are sum of previous two plus the number of letters in the English word? Unlikely.
+    
+    Maybe it's the sequence of numbers that are the sum of the previous two plus the number of prime factors? Let's test: For n=9, a8=34 (prime factors 2*17 => 2), a7=21 (3*7 =>2). Sum of prime factors count = 2+2=4. Not 1.
+    
+    Maybe it's the sequence of numbers that are the sum of previous two plus the number of 1's in binary representation? Let's test: a8=34 binary 100010 => two 1's. a7=21 binary 10101 => three 1's. Sum=5. Not 1.
+    
+    Maybe it's the sequence of numbers that are the sum of previous two plus the number of digits? a8=34 (2 digits), a7=21 (2 digits) sum=4. Not 1.
+    
+    Maybe it's the sequence of numbers that are the sum of previous two plus the previous term's index? For n=9, previous index? Not sure.
+    
+    Alternatively, maybe the sequence is not Fibonacci but something like each term is the sum of the previous term and the term before that, but starting with 1,2, and then after a while we add the term before that? No.
+    
+    Let's look at the sequence: 1,2,3,5,8,13,21,34,56. Could be the sequence of numbers that are the sum of the previous two plus the number of letters in the word for the previous term? Not likely.
+    
+    Maybe it's the sequence of numbers that are the sum of the previous two plus the number of vowels in the English word? Not.
+    
+    Maybe it's the sequence of numbers that are the sum of the previous two plus the number of distinct prime factors? Let's test: a8=34 has distinct prime factors 2 and 17 =>2. a7=21 has 3 and 7 =>2. Sum=4. Not 1.
+    
+    Maybe it's the sequence of numbers that are the sum of the previous two plus the number of letters in the Roman numeral? a8=34 is XXXIV (4 letters), a7=21 is XXI (3 letters) sum=7. Not 1.
+    
+    Maybe it's the sequence of numbers that are the sum of the previous two plus the number of letters in the word "Fibonacci"? Not.
+    
+    Alternatively, maybe the sequence is not about addition but about something else like each term is the previous term plus the number of letters in the English word for the previous term? Let's test: a1=1 (one) has 3 letters. a2 = a1 + 3 = 1+3=4, but actual a2=2. Not.
+    
+    Maybe it's the sequence of numbers that are the sum of the previous two plus the number of letters in the word for the index? Not.
+    
+    Let's consider other known sequences: 1,2,3,5,8,13,21,34,55,... is Fibonacci (starting with 1,2). The given sequence deviates at 56 instead of 55. Could be a misprint? But the problem likely expects us to notice that it's almost Fibonacci but with a twist: maybe it's the sequence of numbers
+
+  [v2_08] [Medium] Sequence and Pattern Trap
+  Question        : A snail climbs 3 feet up a 30-foot well during the day and slides back 2 feet at night. On which day does the snail first reach the top? Show your day-by-day reasoning.
+  Correct Answer  : 28
+  Trap            : Models often say 30 days (30-2=28 net... wait no). The snail climbs 1 foot net per day, but on the final day it reaches 30 before sliding. Net per day = 1ft. After 27 days it is at 27ft. Day 28: climbs to 30ft and escapes — does not slide back.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 43208.1ms | 1206 tokens
+  Response:
+    **Step‑by‑step reasoning**
+    
+    Let  
+    
+    - \(h_n\) = height of the snail **at the beginning of day \(n\)** (before it climbs that day).  
+    - During the day it climbs +3 ft.  
+    - If after climbing it has reached or passed the top (≥ 30 ft), it stops and does **not** slide back that night.  
+    - Otherwise it slides back –2 ft during the night, so the height at the start of the next day is \(h_{n+1}=h_n+3-2 = h_n+1\).
+    
+    Thus, as long as the snail has not yet reached the top, each full day (day + night) gives a net gain of **1 ft**.
+    
+    ---
+    
+    ### Heights at the start of each day
+    
+    - Start of day 1: \(h_1 = 0\) (bottom of the well)  
+    - After night 1 (if not yet out): \(h_2 = h_1+1 = 1\)  
+    - After night 2: \(h_3 = h_2+1 = 2\)  
+    - …  
+    - In general, after night \(k\) (i.e., at the start of day \(k+1\)):  
+      \[
+      h_{k+1}=k \quad\text{feet}
+      \]
+    
+    So at the **beginning of day \(n\)** the snail is at height  
+    \[
+    h_n = n-1 \text{ feet}.
+    \]
+    
+    ---
+    
+    ### Condition for reaching the top during the day
+    
+    During day \(n\) the snail climbs 3 ft, reaching height  
+    \[
+    h_n + 3 = (n-1) + 3 = n+2 \text{ feet}.
+    \]
+    
+    It reaches the top as soon as this height is **at least 30 ft**:
+    
+    \[
+    n+2 \ge 30 \;\Longrightarrow\; n \ge 28.
+    \]
+    
+    The smallest integer \(n\) satisfying this is \(n = 28\).
+    
+    ---
+    
+    ### Verification with a short day‑by‑day table (first few and last few days)
+    
+    | Day | Start height (ft) | After climbing (ft) | Slide? | End‑of‑night height (ft) |
+    |-----|-------------------|---------------------|--------|--------------------------|
+    | 1   | 0                 | 3                   | yes    | 1                        |
+    | 2   | 1                 | 4                   | yes    | 2                        |
+    | 3   | 2                 | 5                   | yes    | 3                        |
+    | …   | …                 | …                   | …      | …                        |
+    | 26  | 25                | 28                  | yes    | 26                       |
+    | 27  | 26                | 29                  | yes    | 27                       |
+    | 28  | 27                | **30**              | **no** (reached top) | — |
+    
+    On day 28 the snail starts at 27 ft, climbs 3 ft to exactly 30 ft, and has reached the top of the well. It does not slide back that night because it is already out.
+    
+    ---
+    
+    \[
+    \boxed{\text{The snail first reaches the top on day } 28.}
+    \]
+
+  [v2_09] [Hard] Percentage and Proportion Trap
+  Question        : A shop increases its price by 25% on Monday. On Tuesday it decreases the new price by 25%. On Wednesday it increases the Tuesday price by 25% again. On Thursday it decreases the Wednesday price by 25%. If the original price was $100, what is the final price on Thursday? Show all steps.
+  Correct Answer  : 87.89
+  Trap            : Models think +25% -25% cancels out. It doesn't. Each cycle: 100 * 1.25 * 0.75 = 93.75. Two cycles: 100 * (1.25*0.75)² = 100 * 0.9375² = 87.89.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 22318.1ms | 737 tokens
+  Response:
+    **Step‑by‑step calculation**
+    
+    | Day | Operation | Calculation | Price after operation |
+    |-----|-----------|-------------|-----------------------|
+    | Start | – | – | **$100.00** |
+    | Monday | Increase by 25 % | \(100 \times (1 + 0.25) = 100 \times 1.25\) | **$125.00** |
+    | Tuesday | Decrease by 25 % | \(125 \times (1 - 0.25) = 125 \times 0.75\) | **$93.75** |
+    | Wednesday | Increase by 25 % | \(93.75 \times 1.25\) | **$117.1875** |
+    | Thursday | Decrease by 25 % | \(117.1875 \times 0.75\) | **$87.890625** |
+    
+    **Result**
+    
+    The price on Thursday is  
+    
+    \[
+    \boxed{\$87.890625}
+    \]
+    
+    If we round to the nearest cent (as is customary for money), the final price is **\$87.89**.
+
+  [v2_10] [Hard] Percentage and Proportion Trap
+  Question        : In a room, 70% of people are wearing hats. Of those wearing hats, 40% are also wearing glasses. Of those NOT wearing hats, 80% are wearing glasses. What percentage of the total people in the room are wearing glasses? Show your working.
+  Correct Answer  : 52
+  Trap            : Models average the percentages: (40+80)/2 = 60%. Wrong. Need to weight by proportion: 0.7*0.4 + 0.3*0.8 = 0.28 + 0.24 = 0.52 = 52%.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 2866.3ms | 699 tokens
+  Response:
+    
+    
+    Let’s denote:
+    
+    - \(H\) = event “person is wearing a hat”
+    - \(G\) = event “person is wearing glasses”
+    
+    We are given:
+    
+    - \(P(H) = 0.70\) (70% wear hats)
+    - \(P(G \mid H) = 0.40\) (of those wearing hats, 40% also wear glasses)
+    - \(P(G \mid \neg H) = 0.80\) (of those **not** wearing hats, 80% wear glasses)
+    
+    We want \(P(G)\), the overall proportion wearing glasses. Use the law of total probability:
+    
+    \[
+    P(G) = P(H)\,P(G \mid H) + P(\neg H)\,P(G \mid \neg H)
+    \]
+    
+    Since \(P(\neg H) = 1 - P(H) = 0.30\),
+    
+    \[
+    \begin{aligned}
+    P(G) &= (0.70)(0.40) + (0.30)(0.80) \\
+         &= 0.28 + 0.24 \\
+         &= 0.52.
+    \end{aligned}
+    \]
+    
+    Thus, **52% of the total people in the room are wearing glasses**.
+    
+    (If you prefer to work with concrete numbers: assume 100 people → 70 wear hats, of which \(0.4 \times 70 = 28\) also wear glasses; 30 do not wear hats, of which \(0.8 \times 30 = 24\) wear glasses; total wearing glasses = \(28 + 24 = 52\) out of 100 → 52%.)
+
+  [v2_11] [Medium] Language and Logic Trap
+  Question        : A box contains red and blue marbles. The ratio of red to blue is 3:2. If 10 red marbles are removed, the ratio becomes 1:2. How many blue marbles are in the box? Show your working.
+  Correct Answer  : 10
+  Trap            : Models set up wrong equation. Let red=3x, blue=2x. After removal: (3x-10)/(2x) = 1/2. Cross multiply: 6x-20=2x. 4x=20. x=5. Red=15, Blue=10. But check: (15-10)/10 = 5/10 = 1/2 ✓
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 18804.4ms | 688 tokens
+  Response:
+    Let  
+    
+    - \(R\) = number of red marbles initially  
+    - \(B\) = number of blue marbles initially  
+    
+    The initial ratio is  
+    
+    \[
+    \frac{R}{B}= \frac{3}{2}\quad\Longrightarrow\quad R = 3k,\; B = 2k
+    \]
+    
+    for some positive integer \(k\).
+    
+    After removing 10 red marbles, the red count becomes \(R-10 = 3k-10\) while the blue count stays \(B = 2k\).  
+    The new ratio is given as \(1:2\):
+    
+    \[
+    \frac{3k-10}{2k}= \frac{1}{2}.
+    \]
+    
+    Solve for \(k\):
+    
+    \[
+    2(3k-10)=1(2k)\\
+    6k-20 = 2k\\
+    6k-2k = 20\\
+    4k = 20\\
+    k = 5.
+    \]
+    
+    Now find the number of blue marbles:
+    
+    \[
+    B = 2k = 2 \times 5 = 10.
+    \]
+    
+    **Check:**  
+    Initially: red \(=3k=15\), blue \(=10\) → ratio \(15:10 = 3:2\).  
+    After removing 10 red: red \(=5\), blue \(=10\) → ratio \(5:10 = 1:2\). ✓
+    
+    \[
+    \boxed{10}
+    \]
+
+  [v2_12] [Hard] Language and Logic Trap
+  Question        : Every student in a class passed at least one of two exams: Maths or English. 13 students passed Maths. 11 students passed English. 4 students passed both. How many students are in the class? Now — if one more student joins who failed BOTH exams, what fraction of the class passed at least one exam? Show all working.
+  Correct Answer  : 20/21
+  Trap            : Two-part problem. Part 1: 13+11-4=20 students. Part 2: models forget to add the new student to total — they keep 20 as denominator. Correct: 20/(20+1) = 20/21.
+  Result          : ✗ WRONG
+  Recovery Type   : wrong_no_signal
+  Latency/Tokens  : 21534.6ms | 699 tokens
+  Response:
+    **Step 1: Find the original class size**
+    
+    Let  
+    
+    - \(M\) = number who passed Maths = 13  
+    - \(E\) = number who passed English = 11  
+    - \(B\) = number who passed both = 4  
+    
+    Since every student passed **at least one** exam, the total number of students is given by the inclusion‑exclusion principle:
+    
+    \[
+    \text{Total} = M + E - B = 13 + 11 - 4 = 20.
+    \]
+    
+    So the class originally has **20 students**.
+    
+    ---
+    
+    **Step 2: Add the new student**
+    
+    A new student joins who **failed both** exams.  
+    - This student does **not** increase the count of those who passed at least one exam.  
+    - The number who passed at least one exam stays at 20.
+    
+    New total class size:
+    
+    \[
+    20\ (\text{original}) + 1\ (\text{new}) = 21.
+    \]
+    
+    ---
+    
+    **Step 3: Compute the fraction that passed at least one exam**
+    
+    \[
+    \text{Fraction} = \frac{\text{Number who passed at least one}}{\text{Total class size}}
+                     = \frac{20}{21}.
+    \]
+    
+    ---
+    
+    \[
+    \boxed{20\text{ students originally}} \qquad
+    \boxed{\dfrac{20}{21}\text{ passed at least one exam after the new student joins}}
+    \]
+
+  [v2_13] [Medium] Spatial Reasoning Trap
+  Question        : A cube has a surface area of 150 square centimetres. What is the length of its diagonal from one corner to the opposite corner? Round to 2 decimal places. Show your working.
+  Correct Answer  : 8.66
+  Trap            : Models often calculate edge diagonal (√2 × side) instead of space diagonal (√3 × side). Surface area = 6s² = 150, so s²=25, s=5. Space diagonal = 5√3 = 8.66.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 2180.8ms | 615 tokens
+  Response:
+    
+    
+    **Step 1: Find the side length of the cube**
+    
+    The surface area \(A\) of a cube with side length \(s\) is  
+    
+    \[
+    A = 6s^{2}
+    \]
+    
+    Given \(A = 150\text{ cm}^2\):
+    
+    \[
+    6s^{2}=150 \quad\Longrightarrow\quad s^{2}= \frac{150}{6}=25
+    \]
+    
+    \[
+    s = \sqrt{25}=5\text{ cm}
+    \]
+    
+    (We take the positive root because a length cannot be negative.)
+    
+    ---
+    
+    **Step 2: Compute the space diagonal**
+    
+    The diagonal that runs from one corner of the cube to the opposite corner (the space diagonal) forms a right‑angled triangle with the three edges meeting at a corner. Its length \(d\) is given by the 3‑D Pythagorean theorem:
+    
+    \[
+    d = \sqrt{s^{2}+s^{2}+s^{2}} = \sqrt{3s^{2}} = s\sqrt{3}
+    \]
+    
+    Substituting \(s = 5\text{ cm}\):
+    
+    \[
+    d = 5\sqrt{3}\text{ cm}
+    \]
+    
+    ---
+    
+    **Step 3: Evaluate numerically and round**
+    
+    \[
+    \sqrt{3} \approx 1.7320508076
+    \]
+    
+    \[
+    d \approx 5 \times 1.7320508076 = 8.660254038\text{ cm}
+    \]
+    
+    Rounded to two decimal places:
+    
+    \[
+    d \approx 8.66\text{ cm}
+    \]
+    
+    ---
+    
+    \[
+    \boxed{8.66\text{ cm}}
+    \]
+
+  [v2_14] [Medium] Spatial Reasoning Trap
+  Question        : You fold a piece of paper in half 7 times. The original paper is 0.1mm thick. How thick is the folded paper in centimetres? Show your calculations.
+  Correct Answer  : 1.28
+  Trap            : Models calculate 0.1 × 7 = 0.7mm (linear) instead of 0.1 × 2^7 = 12.8mm = 1.28cm (exponential).
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 18187.4ms | 528 tokens
+  Response:
+    **Step‑by‑step calculation**
+    
+    1. **Initial thickness**  
+       \[
+       t_0 = 0.1\ \text{mm}
+       \]
+    
+    2. **Effect of each fold**  
+       Each fold doubles the thickness, so after \(n\) folds the thickness is  
+       \[
+       t_n = t_0 \times 2^{\,n}
+       \]
+    
+    3. **Number of folds**  
+       \(n = 7\)
+    
+    4. **Compute the factor**  
+       \[
+       2^{7}=128
+       \]
+    
+    5. **Thickness after 7 folds (in mm)**  
+       \[
+       t_7 = 0.1\ \text{mm} \times 128 = 12.8\ \text{mm}
+       \]
+    
+    6. **Convert mm to cm**  
+       \(1\ \text{cm}=10\ \text{mm}\) → divide by 10:  
+       \[
+       t_7 = \frac{12.8\ \text{mm}}{10}=1.28\ \text{cm}
+       \]
+    
+    ---
+    
+    **Answer:** The folded paper is **1.28 cm** thick.
+
+  [v2_15] [Hard] Overcomplexity Trap
+  Question        : A train leaves Station A at 9:00am travelling at 80 km/h toward Station B. Another train leaves Station B at 9:00am travelling at 120 km/h toward Station A. The distance between Station A and B is 500 km. A fly starts at Station A at 9:00am and flies back and forth between the two trains at 200 km/h until the trains collide. How far does the fly travel in total? Show your reasoning.
+  Correct Answer  : 500
+  Trap            : Models attempt to calculate each leg of the fly's journey (infinite series). The trick is: trains close at 200km/h combined speed, meet in 500/200 = 2.5 hours. Fly travels 200 × 2.5 = 500km.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 17256.7ms | 631 tokens
+  Response:
+    **Step‑by‑step reasoning**
+    
+    1. **Determine when the trains meet.**  
+       - Train A speed = 80 km/h (from A toward B).  
+       - Train B speed = 120 km/h (from B toward A).  
+       - Their closing (relative) speed = \(80 + 120 = 200\) km/h.  
+       - Initial separation = 500 km.  
+    
+       \[
+       \text{Time to collision} = \frac{\text{distance}}{\text{relative speed}} = \frac{500\text{ km}}{200\text{ km/h}} = 2.5\text{ h}.
+       \]
+    
+    2. **Find how long the fly is in the air.**  
+       The fly starts at 9:00 am and keeps flying until the trains collide, i.e., for the same 2.5 h.
+    
+    3. **Compute the total distance the fly travels.**  
+       Fly’s speed = 200 km/h (constant).  
+    
+       \[
+       \text{Distance flown} = \text{speed} \times \text{time} = 200\text{ km/h} \times 2.5\text{ h} = 500\text{ km}.
+       \]
+    
+    ---
+    
+    \[
+    \boxed{500\text{ km}}
+    \]
+
+────────────────────────────────────────────────────────────────────────
+  Ministral
+────────────────────────────────────────────────────────────────────────
+
+  [v2_01] [Medium] Compounding Rate Trap
+  Question        : A bacteria colony doubles every 3 hours. At 12:00 noon, the colony fills exactly half the petri dish. At what time will the dish be completely full? Show your reasoning.
+  Correct Answer  : 3:00 pm
+  Trap            : Models calculate forward from noon instead of realising: if it doubles every 3 hours and is half full at noon, it will be full in exactly ONE more doubling period — 3pm.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_recovered
+  Signal Words    : 'careful' @word1
+  Recovery At     : 0.3% through response
+  Latency/Tokens  : 5870.9ms | 714 tokens
+  Response:
+    Let's carefully analyze the problem step by step.
+    
+    ### Understanding the Problem
+    We have a bacteria colony that doubles in size every 3 hours. At 12:00 noon, the colony fills exactly half of the petri dish. We need to determine at what time the dish will be completely full.
+    
+    ### Key Information
+    1. **Doubling Time**: The colony doubles every 3 hours. This means if the colony is at size \( X \) at time \( t \), then at time \( t + 3 \) hours, the colony will be at size \( 2X \).
+    2. **Initial Condition**: At 12:00 noon, the colony fills exactly half the petri dish. Let’s denote the total capacity of the petri dish as \( C \). Therefore, at 12:00 noon, the colony size is \( \frac{C}{2} \).
+    
+    ### Goal
+    Find the time when the colony size reaches \( C \) (the full capacity of the petri dish).
+    
+    ### Step-by-Step Reasoning
+    1. **Initial State (12:00 noon)**:
+       - Colony size: \( \frac{C}{2} \).
+    
+    2. **After 3 hours (15:00 or 3:00 PM)**:
+       - The colony doubles from \( \frac{C}{2} \) to \( C \).
+       - Calculation: \( \frac{C}{2} \times 2 = C \).
+    
+    So, after 3 hours from 12:00 noon, the colony will have doubled from half-full to full.
+    
+    ### Verification
+    Let’s verify this with a simple example to ensure our understanding is correct.
+    
+    - Suppose the petri dish capacity \( C = 100 \) units.
+    - At 12:00 noon, colony size = 50 units (half of 100).
+    - After 3 hours (15:00), colony size = 50 * 2 = 100 units (full).
+    
+    This matches our expectation, confirming that the dish will be full 3 hours after 12:00 noon.
+    
+    ### Potential Missteps and Corrections
+    Initially, one might think that since the colony is half-full at 12:00 noon, it would take more than 3 hours to fill the dish completely. However, the key is to recognize that the colony **doubles** every 3 hours, not that it grows linearly or by some other pattern.
+    
+    If we mistakenly assumed linear growth (e.g., adding a fixed amount every 3 hours), we might incorrectly calculate the time. But the problem clearly states that the colony **doubles**, so exponential growth is the correct model.
+    
+    ### Conclusion
+    The dish will be completely full **3 hours after 12:00 noon**, which is at **15:00 (3:00 PM)**.
+
+  [v2_02] [Hard] Compounding Rate Trap
+  Question        : A car depreciates by 20% each year. After how many years will the car be worth less than 40% of its original value? Show your calculations year by year.
+  Correct Answer  : 5
+  Trap            : Models apply 20% per year linearly (thinking 2 years = 40% loss) rather than compounding. After year 1: 80%, year 2: 64%, year 3: 51.2%, year 4: 40.96% — so the answer is 5 years not 3.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_recovered
+  Signal Words    : 'wait' @word529, 'actually' @word568, 'let me re-examine' @word585, 'let me redo' @word657
+  Recovery At     : 70.1% through response
+  Latency/Tokens  : 14379.2ms | 1597 tokens
+  Response:
+    Let's solve this problem step by step. We'll assume the car's original value is \( V_0 \). The car depreciates by 20% each year, meaning it retains 80% of its value at the end of each year.
+    
+    ### Year-by-Year Calculation:
+    
+    We'll calculate the value of the car at the end of each year as a percentage of its original value \( V_0 \).
+    
+    #### Initial value:
+    - \( V_0 = 100\% \) (original value)
+    
+    #### After 1 year:
+    - Depreciation: 20% of \( V_0 \), so remaining value = 80% of \( V_0 \).
+    - Value: \( 100\% \times 0.80 = 80\% \) of \( V_0 \).
+    
+    #### After 2 years:
+    - Depreciation: 20% of the current value (80% of \( V_0 \)), so remaining value = 80% of 80% of \( V_0 \).
+    - Value: \( 80\% \times 0.80 = 64\% \) of \( V_0 \).
+    
+    #### After 3 years:
+    - Depreciation: 20% of the current value (64% of \( V_0 \)), so remaining value = 80% of 64% of \( V_0 \).
+    - Value: \( 64\% \times 0.80 = 51.2\% \) of \( V_0 \).
+    
+    #### After 4 years:
+    - Depreciation: 20% of the current value (51.2% of \( V_0 \)), so remaining value = 80% of 51.2% of \( V_0 \).
+    - Value: \( 51.2\% \times 0.80 = 40.96\% \) of \( V_0 \).
+    
+    ### Checking the condition:
+    We want to find the number of years after which the car's value is **less than 40%** of its original value.
+    
+    - After 3 years: 51.2% (which is **greater than** 40%).
+    - After 4 years: 40.96% (which is **less than** 40%).
+    
+    ### Conclusion:
+    The car's value drops below 40% of its original value **after 4 years**.
+    
+    ---
+    
+    ### Verification:
+    Let me double-check the calculations to ensure no mistakes were made.
+    
+    1. After 1 year: \( 100\% \times 0.80 = 80\% \) ✅
+    2. After 2 years: \( 80\% \times 0.80 = 64\% \) ✅
+    3. After 3 years: \( 64\% \times 0.80 = 51.2\% \) ✅
+    4. After 4 years: \( 51.2\% \times 0.80 = 40.96\% \) ✅
+    
+    The calculations are correct. The car's value first falls below 40% after **4 years**.
+    
+    ---
+    
+    ### Alternative Approach (Using Exponents):
+    The problem can also be solved using the formula for exponential decay:
+    \[ V_n = V_0 \times (1 - r)^n \]
+    where:
+    - \( V_n \) = value after \( n \) years,
+    - \( V_0 \) = original value,
+    - \( r \) = depreciation rate (20% or 0.20),
+    - \( n \) = number of years.
+    
+    We want \( V_n < 0.40 \times V_0 \), so:
+    \[ (0.80)^n < 0.40 \]
+    
+    Taking the natural logarithm of both sides:
+    \[ n \cdot \ln(0.80) < \ln(0.40) \]
+    
+    Since \( \ln(0.80) \) is negative, dividing both sides by \( \ln(0.80) \) reverses the inequality:
+    \[ n > \frac{\ln(0.40)}{\ln(0.80)} \]
+    
+    Calculating the values:
+    \[ \ln(0.40) \approx -0.916291 \]
+    \[ \ln(0.80) \approx -0.223144 \]
+    \[ n > \frac{-0.916291}{-0.223144} \approx 4.106 \]
+    
+    Since \( n \) must be an integer (you can't have a fraction of a year in this context), we round up to the next whole number: \( n = 5 \).
+    
+    Wait, this contradicts our earlier year-by-year calculation! Let's investigate this discrepancy.
+    
+    ---
+    
+    ### Identifying the Error:
+    In the year-by-year calculation, the value after 4 years was 40.96%, which is **less than 40%** (since 40.96% > 40%, this is incorrect). Actually, 40.96% is **greater than** 40%, so the car's value is still above 40% after 4 years.
+    
+    Let me re-examine the year-by-year values:
+    
+    - After 3 years: 51.2% (still > 40%)
+    - After 4 years: 40.96% (still > 40%)
+    - After 5 years: \( 40.96\% \times 0.80 = 32.768\% \) (now < 40%)
+    
+    So the correct answer is **after 5 years**, not 4. The exponential formula gave \( n > 4.106 \), so \( n = 5 \), which matches the corrected year-by-year calculation.
+    
+    ---
+    
+    ### Corrected Year-by-Year Calculation:
+    Let me redo the year-by-year steps carefully:
+    
+    #### Initial value:
+    - \( V_0 = 100\% \)
+    
+    #### After 1 year:
+    - Value: \( 100\% \times 0.80 = 80\% \)
+    
+    #### After 2 years:
+    - Value: \( 80\% \times 0.80 = 64\% \)
+    
+    #### After 3 years:
+    - Value: \( 64\% \times 0.80 = 51.2\% \)
+    
+    #### After 4 years:
+    - Value: \( 51.2\% \times 0.80 = 40.96\% \) (still > 40%)
+    
+    #### After 5 years:
+    - Value: \( 40.96\% \times 0.80 = 32.768\% \) (now < 40%)
+    
+    ### Final Answer:
+    The car's value will be less than 40%
+
+  [v2_03] [Hard] Embedded Contradiction Trap
+  Question        : A ladder is leaning against a wall. The base of the ladder is 6 feet from the wall. The top of the ladder reaches 8 feet up the wall. The ladder is 11 feet long. What angle does the ladder make with the ground? Show your working.
+  Correct Answer  : impossible
+  Trap            : Models calculate the angle using 6 and 8 without checking: a 6-8 ladder should be 10 feet (Pythagoras), not 11. The problem has an internal inconsistency. A correct model should flag this.
+  Result          : ✗ WRONG
+  Recovery Type   : false_recovery
+  Signal Words    : 'careful' @word1, 'wait' @word158
+  Recovery At     : 0.2% through response
+  Latency/Tokens  : 11221.8ms | 1049 tokens
+  Response:
+    Let's carefully solve this problem step by step.
+    
+    ### Understanding the Problem
+    We have a ladder leaning against a wall, forming a right-angled triangle with the ground and the wall. Here's what we know:
+    - The distance from the base of the ladder to the wall (let's call this the "adjacent" side) is **6 feet**.
+    - The height where the ladder touches the wall (the "opposite" side) is **8 feet**.
+    - The length of the ladder (the "hypotenuse") is **11 feet**.
+    
+    We are asked to find the angle the ladder makes with the ground. Let's call this angle **θ** (theta).
+    
+    ---
+    
+    ### Step 1: Verify the Given Information
+    Before proceeding, let's verify if the given measurements are consistent with the Pythagorean theorem. The Pythagorean theorem states that in a right-angled triangle:
+    \[ \text{adjacent}^2 + \text{opposite}^2 = \text{hypotenuse}^2 \]
+    
+    Plugging in the values:
+    \[ 6^2 + 8^2 = 36 + 64 = 100 \]
+    \[ 11^2 = 121 \]
+    
+    Wait a minute, this doesn't add up:
+    \[ 100 \neq 121 \]
+    
+    This inconsistency suggests that the given measurements (6 feet, 8 feet, and 11 feet) do not satisfy the Pythagorean theorem. This means the ladder cannot simultaneously be 11 feet long while its base is 6 feet from the wall and its top reaches 8 feet up the wall.
+    
+    ---
+    
+    ### Step 2: Re-examining the Problem
+    Given this inconsistency, let's double-check the problem statement to ensure we haven't misinterpreted anything. The problem states:
+    - Base of the ladder is 6 feet from the wall.
+    - Top of the ladder reaches 8 feet up the wall.
+    - The ladder is 11 feet long.
+    
+    The inconsistency implies that either:
+    1. The ladder cannot be 11 feet long if the other two measurements are correct, or
+    2. There might be a mistake in the given measurements.
+    
+    Assuming the problem is correctly stated, let's proceed by ignoring the hypotenuse length (11 feet) and calculate the angle using the other two sides. This is likely the intended approach, as the hypotenuse seems incorrect based on the other two sides.
+    
+    ---
+    
+    ### Step 3: Calculate the Angle Using Trigonometry
+    We can use the tangent function to find the angle θ, since we know the opposite and adjacent sides:
+    \[ \tan(\theta) = \frac{\text{opposite}}{\text{adjacent}} = \frac{8}{6} = \frac{4}{3} \]
+    
+    To find θ, we take the arctangent (inverse tangent) of \(\frac{4}{3}\):
+    \[ \theta = \arctan\left(\frac{4}{3}\right) \]
+    
+    Now, let's calculate this value. Using a calculator:
+    \[ \theta \approx 53.13^\circ \]
+    
+    ---
+    
+    ### Step 4: Verify the Hypotenuse
+    For completeness, let's calculate the hypotenuse using the correct sides to see what it should be:
+    \[ \text{hypotenuse} = \sqrt{6^2 + 8^2} = \sqrt{36 + 64} = \sqrt{100} = 10 \text{ feet} \]
+    
+    This confirms that the ladder should be 10 feet long, not 11 feet, for the given measurements to be consistent.
+    
+    ---
+    
+    ### Step 5: Conclusion
+    Given the inconsistency in the problem's measurements, the most reasonable approach is to ignore the hypotenuse length (11 feet) and calculate the angle using the other two sides. The angle θ the ladder makes with the ground is approximately **53.13 degrees**.
+    
+    If the hypotenuse were indeed 11 feet, the other two sides would have to satisfy the Pythagorean theorem, which they do not in this case. Thus, the problem likely contains an error in the hypotenuse length.
+    
+    ---
+    
+    ### Final Answer:
+    The angle the ladder makes with the ground is approximately **53.13 degrees**, calculated using the opposite side (8 feet) and adjacent side (6 feet). The given hypotenuse length of 11 feet is inconsistent with these measurements. The correct hypotenuse should be 10 feet.
+
+  [v2_04] [Medium] Embedded Contradiction Trap
+  Question        : In a survey of 100 people: 60 people like coffee. 50 people like tea. 30 people like neither coffee nor tea. How many people like both coffee and tea? Show your working.
+  Correct Answer  : 40
+  Trap            : Models jump to inclusion-exclusion: Both = 60+50-70 = 40. But wait — 30 like neither, so 70 like at least one. Both = 60+50-70 = 40. This is actually correct but models often get confused with the 'neither' framing and use 100 instead of 70.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 7604.5ms | 801 tokens
+  Response:
+    Let's tackle this problem step by step. I'm going to use the principle of inclusion-exclusion to solve it.
+    
+    ### Understanding the Problem
+    We have a survey of 100 people with the following information:
+    - 60 people like coffee.
+    - 50 people like tea.
+    - 30 people like neither coffee nor tea.
+    
+    We need to find out how many people like both coffee and tea.
+    
+    ### Step 1: Define the Sets
+    Let's define:
+    - Let \( C \) be the set of people who like coffee.
+    - Let \( T \) be the set of people who like tea.
+    
+    Given:
+    - \( |C| = 60 \) (number of people who like coffee)
+    - \( |T| = 50 \) (number of people who like tea)
+    - Total number of people surveyed = 100
+    - Number of people who like neither coffee nor tea = 30
+    
+    ### Step 2: Find the Number of People Who Like at Least One of Coffee or Tea
+    Since 30 people like neither coffee nor tea, the number of people who like at least one of them (either coffee or tea or both) is:
+    \[ \text{Total} - \text{Neither} = 100 - 30 = 70 \]
+    
+    So, the number of people who like coffee or tea or both is 70.
+    
+    ### Step 3: Apply the Inclusion-Exclusion Principle
+    The inclusion-exclusion principle states that for any two sets \( C \) and \( T \):
+    \[ |C \cup T| = |C| + |T| - |C \cap T| \]
+    
+    Where:
+    - \( |C \cup T| \) is the number of people who like coffee or tea or both (which we found to be 70).
+    - \( |C \cap T| \) is the number of people who like both coffee and tea (this is what we're trying to find).
+    
+    Plugging in the known values:
+    \[ 70 = 60 + 50 - |C \cap T| \]
+    
+    ### Step 4: Solve for \( |C \cap T| \)
+    \[ 70 = 110 - |C \cap T| \]
+    \[ |C \cap T| = 110 - 70 \]
+    \[ |C \cap T| = 40 \]
+    
+    ### Verification
+    Let's verify this result to ensure it makes sense:
+    - Number of people who like only coffee: \( |C| - |C \cap T| = 60 - 40 = 20 \)
+    - Number of people who like only tea: \( |T| - |C \cap T| = 50 - 40 = 10 \)
+    - Number of people who like both: 40
+    - Number of people who like neither: 30
+    
+    Now, let's add these up to ensure they total 100:
+    \[ 20 (\text{only coffee}) + 10 (\text{only tea}) + 40 (\text{both}) + 30 (\text{neither}) = 100 \]
+    
+    This checks out!
+    
+    ### Conclusion
+    The number of people who like both coffee and tea is **40**.
+
+  [v2_05] [Hard] Rate and Work Trap
+  Question        : Pipe A fills a tank in 4 hours. Pipe B fills the same tank in 6 hours. Pipe C drains the tank in 3 hours. If all three pipes are open simultaneously, will the tank ever be full? If yes, how long does it take? If no, explain why.
+  Correct Answer  : 12
+  Trap            : Models often just add rates: 1/4 + 1/6 - 1/3 = 3/12 + 2/12 - 4/12 = 1/12. Negative combined rate means the tank drains. Models often get the arithmetic wrong or give a positive time.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 9895.8ms | 1227 tokens
+  Response:
+    Alright, let's tackle this problem step by step. We have three pipes with different effects on the tank:
+    
+    1. **Pipe A**: Fills the tank in 4 hours.
+    2. **Pipe B**: Fills the tank in 6 hours.
+    3. **Pipe C**: Drains the tank in 3 hours.
+    
+    All three pipes are open simultaneously, and we need to determine if the tank will ever be full under these conditions. If it does, we'll calculate how long it takes; if not, we'll explain why.
+    
+    ### Understanding the Problem
+    
+    First, let's understand what each pipe does in terms of the tank's capacity per hour.
+    
+    - **Filling Rates**:
+      - Pipe A fills the tank in 4 hours, so in 1 hour, it fills \( \frac{1}{4} \) of the tank.
+      - Pipe B fills the tank in 6 hours, so in 1 hour, it fills \( \frac{1}{6} \) of the tank.
+    
+    - **Draining Rate**:
+      - Pipe C drains the tank in 3 hours, so in 1 hour, it removes \( \frac{1}{3} \) of the tank.
+    
+    ### Combined Effect
+    
+    When all three pipes are open simultaneously, their effects combine. To find out the net effect per hour, we'll add the rates of the filling pipes and subtract the rate of the draining pipe.
+    
+    Net fill per hour = Rate of Pipe A + Rate of Pipe B - Rate of Pipe C
+    
+    Plugging in the values:
+    
+    Net fill per hour = \( \frac{1}{4} + \frac{1}{6} - \frac{1}{3} \)
+    
+    ### Calculating the Net Fill
+    
+    Now, let's calculate this step by step.
+    
+    First, find a common denominator for the fractions. The denominators are 4, 6, and 3. The least common multiple (LCM) of 4, 6, and 3 is 12.
+    
+    Convert each fraction to have a denominator of 12:
+    
+    - \( \frac{1}{4} = \frac{3}{12} \)
+    - \( \frac{1}{6} = \frac{2}{12} \)
+    - \( \frac{1}{3} = \frac{4}{12} \)
+    
+    Now, plug these back into the net fill equation:
+    
+    Net fill per hour = \( \frac{3}{12} + \frac{2}{12} - \frac{4}{12} \)
+    
+    Combine the numerators:
+    
+    = \( \frac{3 + 2 - 4}{12} \)
+    = \( \frac{5 - 4}{12} \)
+    = \( \frac{1}{12} \)
+    
+    So, the net fill per hour is \( \frac{1}{12} \) of the tank.
+    
+    ### Determining if the Tank Will Ever Be Full
+    
+    The net fill per hour is positive (\( \frac{1}{12} \)), which means that every hour, the tank is gaining \( \frac{1}{12} \) of its capacity.
+    
+    If the tank starts empty, and we're adding \( \frac{1}{12} \) of its capacity each hour, then after 12 hours, the tank would be full because:
+    
+    \( 12 \times \frac{1}{12} = 1 \) (full tank)
+    
+    ### Verifying the Calculation
+    
+    Let me double-check the net fill calculation to ensure there's no mistake.
+    
+    Original rates:
+    - Pipe A: \( \frac{1}{4} \) per hour
+    - Pipe B: \( \frac{1}{6} \) per hour
+    - Pipe C: \( -\frac{1}{3} \) per hour (since it drains)
+    
+    Net fill:
+    \( \frac{1}{4} + \frac{1}{6} - \frac{1}{3} \)
+    
+    Convert to twelfths:
+    \( \frac{3}{12} + \frac{2}{12} - \frac{4}{12} = \frac{1}{12} \)
+    
+    This checks out. The net fill is indeed \( \frac{1}{12} \) per hour.
+    
+    ### Time to Fill the Tank
+    
+    Since the net fill is \( \frac{1}{12} \) of the tank per hour, to fill 1 whole tank:
+    
+    Time = \( \frac{1 \text{ tank}}{\frac{1}{12} \text{ tank/hour}} = 12 \text{ hours} \)
+    
+    ### Potential Missteps
+    
+    Initially, one might think that since Pipe C is draining, it could offset the filling pipes enough to prevent the tank from ever filling. However, in this case, the combined filling rates of Pipes A and B exceed the draining rate of Pipe C, leading to a net positive fill.
+    
+    Another possible confusion could be in calculating the net rate correctly, especially when dealing with fractions. Ensuring that all fractions are converted to a common denominator is crucial to avoid errors in addition and subtraction.
+    
+    ### Final Answer
+    
+    **Yes, the tank will be full if all three pipes are open simultaneously. It will take 12 hours to fill the tank.**
+
+  [v2_06] [Hard] Rate and Work Trap
+  Question        : Alice can paint a house in 5 days. Bob can paint the same house in 7 days. They start painting together, but after 2 days Alice leaves and Bob finishes alone. How many total days does it take to paint the house? Round to 1 decimal place.
+  Correct Answer  : 4.2
+  Trap            : Models forget that the 'total days' includes the 2 days Alice worked. They often give just Bob's remaining time.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 7706.3ms | 969 tokens
+  Response:
+    Let's break down the problem step by step.
+    
+    ### Understanding the Problem
+    - **Alice's rate**: Can paint the house in 5 days. So, Alice's painting rate is \( \frac{1}{5} \) of the house per day.
+    - **Bob's rate**: Can paint the house in 7 days. So, Bob's painting rate is \( \frac{1}{7} \) of the house per day.
+    - **Scenario**: They work together for 2 days, then Alice leaves, and Bob finishes the remaining work alone.
+    
+    ### Step 1: Calculate Combined Work Rate
+    When Alice and Bob work together, their combined rate is the sum of their individual rates:
+    \[
+    \text{Combined rate} = \frac{1}{5} + \frac{1}{7}
+    \]
+    To add these fractions, find a common denominator (which is 35):
+    \[
+    \frac{1}{5} = \frac{7}{35}, \quad \frac{1}{7} = \frac{5}{35}
+    \]
+    So,
+    \[
+    \text{Combined rate} = \frac{7}{35} + \frac{5}{35} = \frac{12}{35} \text{ of the house per day}
+    \]
+    
+    ### Step 2: Calculate Work Done in First 2 Days
+    They work together for 2 days. The amount of the house painted in these 2 days is:
+    \[
+    \text{Work done} = \text{Combined rate} \times \text{Time} = \frac{12}{35} \times 2 = \frac{24}{35} \text{ of the house}
+    \]
+    
+    ### Step 3: Calculate Remaining Work
+    The total work is 1 house. The remaining work after 2 days is:
+    \[
+    \text{Remaining work} = 1 - \frac{24}{35} = \frac{11}{35} \text{ of the house}
+    \]
+    
+    ### Step 4: Calculate Time for Bob to Finish Alone
+    Bob's rate is \( \frac{1}{7} \) of the house per day. To find the time (\( t \)) it takes Bob to finish the remaining \( \frac{11}{35} \) of the house:
+    \[
+    \frac{1}{7} \times t = \frac{11}{35}
+    \]
+    Solve for \( t \):
+    \[
+    t = \frac{11}{35} \times 7 = \frac{77}{35} = \frac{11}{5} = 2.2 \text{ days}
+    \]
+    
+    ### Step 5: Calculate Total Time
+    The total time taken to paint the house is the initial 2 days plus the time Bob takes to finish alone:
+    \[
+    \text{Total time} = 2 + 2.2 = 4.2 \text{ days}
+    \]
+    
+    ### Verification
+    Let's verify the calculations to ensure no mistakes were made:
+    1. Combined rate: \( \frac{1}{5} + \frac{1}{7} = \frac{12}{35} \) ✔️
+    2. Work done in 2 days: \( \frac{12}{35} \times 2 = \frac{24}{35} \) ✔️
+    3. Remaining work: \( 1 - \frac{24}{35} = \frac{11}{35} \) ✔️
+    4. Time for Bob: \( \frac{11}{35} \div \frac{1}{7} = \frac{11}{5} = 2.2 \) days ✔️
+    5. Total time: \( 2 + 2.2 = 4.2 \) days ✔️
+    
+    Everything checks out.
+    
+    ### Final Answer
+    The total time taken to paint the house is **4.2 days**.
+
+  [v2_07] [Very Hard] Sequence and Pattern Trap
+  Question        : What is the next number in this sequence: 1, 2, 3, 5, 8, 13, 21, 34, 56 ... Show your reasoning.
+  Correct Answer  : there is an error in the sequence
+  Trap            : This looks like Fibonacci (where each = sum of previous two) but 56 is wrong — it should be 55 (21+34=55 not 56). Models trained on Fibonacci will say 89 or 90 without catching the error in the sequence.
+  Result          : ✗ WRONG
+  Recovery Type   : false_recovery
+  Signal Words    : 'wait' @word299, 'careful' @word664, 'let me check' @word752
+  Recovery At     : 36.0% through response
+  Latency/Tokens  : 14779.9ms | 1601 tokens
+  Response:
+    Let's analyze the sequence step by step:
+    
+    Given sequence: 1, 2, 3, 5, 8, 13, 21, 34, 56, ...
+    
+    ### Step 1: Observe the sequence
+    First, I'll list the terms with their positions to see if there's a pattern based on their position in the sequence:
+    
+    - Term 1: 1
+    - Term 2: 2
+    - Term 3: 3
+    - Term 4: 5
+    - Term 5: 8
+    - Term 6: 13
+    - Term 7: 21
+    - Term 8: 34
+    - Term 9: 56
+    
+    ### Step 2: Check for arithmetic or geometric patterns
+    - The differences between consecutive terms are not constant (e.g., 2-1=1, 3-2=1, 5-3=2, 8-5=3, etc.), so it's not an arithmetic sequence.
+    - The ratios between consecutive terms are also not constant (e.g., 2/1=2, 3/2=1.5, 5/3≈1.67, 8/5=1.6, etc.), so it's not a geometric sequence.
+    
+    ### Step 3: Look for recursive patterns
+    Now, let's see if each term is derived from the previous terms. I'll check if each term is the sum of the two preceding terms:
+    
+    - Term 3 (3) = Term 1 (1) + Term 2 (2) → 1 + 2 = 3 ✔
+    - Term 4 (5) = Term 2 (2) + Term 3 (3) → 2 + 3 = 5 ✔
+    - Term 5 (8) = Term 3 (3) + Term 4 (5) → 3 + 5 = 8 ✔
+    - Term 6 (13) = Term 4 (5) + Term 5 (8) → 5 + 8 = 13 ✔
+    - Term 7 (21) = Term 5 (8) + Term 6 (13) → 8 + 13 = 21 ✔
+    - Term 8 (34) = Term 6 (13) + Term 7 (21) → 13 + 21 = 34 ✔
+    - Term 9 (56) = Term 7 (21) + Term 8 (34) → 21 + 34 = 55 ❌
+    
+    Wait, this doesn't match! Term 9 is given as 56, but 21 + 34 = 55, not 56. There seems to be an inconsistency here.
+    
+    ### Step 4: Re-examine the sequence
+    Let me double-check the sequence provided: 1, 2, 3, 5, 8, 13, 21, 34, 56.
+    
+    If the pattern is supposed to be the sum of the two preceding terms (like the Fibonacci sequence), then the sequence should be:
+    1, 2, 3 (1+2), 5 (2+3), 8 (3+5), 13 (5+8), 21 (8+13), 34 (13+21), 55 (21+34), 89 (34+55), etc.
+    
+    But the given sequence ends with 56, not 55. This suggests that either:
+    1. There's a typo in the sequence (56 should be 55), or
+    2. The pattern is not the sum of the two preceding terms.
+    
+    ### Step 5: Check alternative patterns
+    Let me see if there's another pattern. For example, maybe it's the sum of the previous term and some other operation.
+    
+    Looking at the differences between terms:
+    - 2 - 1 = 1
+    - 3 - 2 = 1
+    - 5 - 3 = 2
+    - 8 - 5 = 3
+    - 13 - 8 = 5
+    - 21 - 13 = 8
+    - 34 - 21 = 13
+    - 56 - 34 = 22
+    
+    The differences themselves seem to follow a pattern: 1, 1, 2, 3, 5, 8, 13, 22. This looks like the Fibonacci sequence but with an extra 22 at the end, which doesn't fit (since the Fibonacci sequence would expect 21 after 13).
+    
+    Alternatively, maybe the sequence is supposed to be the Fibonacci sequence, and the last term (56) is a typo. The Fibonacci sequence would be:
+    1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, ...
+    
+    But the given sequence starts with 1, 2, 3, which is a shifted Fibonacci sequence (starting from F(1)=1, F(2)=1, but here it starts with F(1)=1, F(2)=2, F(3)=3, etc.).
+    
+    If we assume the sequence is supposed to be the Fibonacci sequence but starts with 1, 2 instead of 1, 1, then the next term after 56 should be 34 + 56 = 90.
+    
+    But this is inconsistent because the Fibonacci sequence would expect 55, not 56.
+    
+    ### Step 6: Re-read the problem carefully
+    The sequence given is: 1, 2, 3, 5, 8, 13, 21, 34, 56.
+    
+    If we ignore the last term (56) and assume it's a typo, the sequence follows the Fibonacci pattern (sum of the two preceding terms). Then the next term would be 34 + 21 = 55.
+    
+    But since 56 is given, let's see if there's another pattern. Maybe the sequence is supposed to be the Fibonacci sequence but with an error in the last term.
+    
+    Alternatively, maybe the sequence is not Fibonacci but something else. Let me check another pattern: multiplying the previous term by some factor and adding something.
+    
+    For example:
+    - 1 * 2 = 2
+    - 2 * 1 + 1 = 3
+    - 3 * 1 + 2 = 5
+    - 5 * 1 + 3 = 8
+    - 8 * 1 + 5 = 13
+    - 13 * 1 + 8 = 21
+    - 21 * 1 + 13 = 34
+    - 34 * 1 + 22 = 56
+
+  [v2_08] [Medium] Sequence and Pattern Trap
+  Question        : A snail climbs 3 feet up a 30-foot well during the day and slides back 2 feet at night. On which day does the snail first reach the top? Show your day-by-day reasoning.
+  Correct Answer  : 28
+  Trap            : Models often say 30 days (30-2=28 net... wait no). The snail climbs 1 foot net per day, but on the final day it reaches 30 before sliding. Net per day = 1ft. After 27 days it is at 27ft. Day 28: climbs to 30ft and escapes — does not slide back.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_recovered
+  Signal Words    : 'careful' @word17, 'wait' @word538, 'wait' @word907
+  Recovery At     : 1.7% through response
+  Latency/Tokens  : 16536.9ms | 1603 tokens
+  Response:
+    Alright, let's tackle this snail and the well problem step by step. I'll go through each day carefully to see how much progress the snail makes and when it finally reaches the top.
+    
+    ### Understanding the Problem
+    - **Total height of the well:** 30 feet.
+    - **Daily progress:** During the day, the snail climbs up 3 feet.
+    - **Nightly regression:** At night, the snail slides back down 2 feet.
+    - **Net gain per full day (day + night):** 3 feet up - 2 feet down = 1 foot net gain per day.
+    
+    At first glance, it might seem like the snail makes a net gain of 1 foot each day, so one might think it would take 30 days to reach the top. But this isn't quite accurate because once the snail gets close enough to the top, it might reach the exit during the day without sliding back at night.
+    
+    ### Day-by-Day Calculation
+    Let's track the snail's position at the end of each day and night.
+    
+    We'll define:
+    - **Daytime position:** After climbing up 3 feet during the day.
+    - **Nighttime position:** After sliding back 2 feet at night.
+    
+    We'll start counting from day 1.
+    
+    **Initial position:** 0 feet (bottom of the well).
+    
+    Let's create a table to track the progress:
+    
+    | Day | Start of Day | Daytime Climb (up 3) | Nighttime Slide (down 2) | End of Day Position |
+    |-----|--------------|---------------------|--------------------------|----------------------|
+    | 1   | 0            | 0 + 3 = 3           | 3 - 2 = 1                | 1                    |
+    | 2   | 1            | 1 + 3 = 4           | 4 - 2 = 2                | 2                    |
+    | 3   | 2            | 2 + 3 = 5           | 5 - 2 = 3                | 3                    |
+    | ... | ...          | ...                 | ...                      | ...                  |
+    
+    Hmm, this seems to be going slowly. Maybe there's a better way.
+    
+    ### Observing the Pattern
+    From the table, it seems like at the end of each full day (after night), the snail is at a position equal to the day number (e.g., end of day 1: 1 foot, end of day 2: 2 feet, etc.).
+    
+    But this would imply it takes 30 days to reach 30 feet, which doesn't account for the fact that once the snail is close enough, it can reach the top during the day without sliding back.
+    
+    Let me think differently: the snail needs to be within 3 feet of the top at the start of the day to reach the top during that day's climb, because it climbs 3 feet during the day.
+    
+    So, the snail reaches the top on the day when its position at the start of the day is 27 feet or more (since 27 + 3 = 30).
+    
+    Now, let's see how many days it takes to reach 27 feet at the start of the day.
+    
+    Each full day (day + night), the snail makes a net gain of 1 foot (3 up, 2 down).
+    
+    So, to reach 27 feet at the start of the day, it would have taken 27 full days to reach 27 feet at the end of the day (after night), but we need it at the start of the day.
+    
+    Wait, let's clarify:
+    
+    At the end of day n (after night), the snail is at n feet (from the initial pattern).
+    
+    So, at the start of day n, the snail is at (n-1) feet (since at the end of day n-1, it was at n-1 feet).
+    
+    We want the start of day n to be >= 27 feet.
+    
+    So, (n-1) >= 27 => n >= 28.
+    
+    So, on day 28, at the start, the snail is at 27 feet.
+    
+    During day 28, it climbs 3 feet: 27 + 3 = 30 feet, reaching the top.
+    
+    It doesn't slide back at night because it's already out.
+    
+    ### Verifying with Smaller Numbers
+    Let's test this with a smaller well to see if the logic holds.
+    
+    Suppose the well is 5 feet tall.
+    
+    - Day 1: starts at 0, climbs to 3, slides to 1.
+    - Day 2: starts at 1, climbs to 4, slides to 2.
+    - Day 3: starts at 2, climbs to 5 (reaches top).
+    
+    According to our logic: need to be at >= 5 - 3 = 2 feet at start of day.
+    
+    Start of day 3: 2 feet, climbs to 5. Correct.
+    
+    Another example: 6 feet well.
+    
+    - Day 1: 0 -> 3 -> 1
+    - Day 2: 1 -> 4 -> 2
+    - Day 3: 2 -> 5 -> 3
+    - Day 4: 3 -> 6 (reaches top)
+    
+    Start of day 4: 3 feet, climbs to 6. Correct.
+    
+    So, the pattern seems to be: on day (total height - 3 + 1) = day (total height - 2), the snail reaches the top.
+    
+    For 30 feet: 30 - 2 = 28.
+    
+    ### Reconstructing the Table Up to Day 28
+    Let me quickly reconstruct the table up to day 28 to confirm.
+    
+    Each full day (day + night), net gain is 1 foot.
+    
+    After 27 full days (day + night), the snail is at 27 feet (since each full day adds 1 foot).
+    
+    At the start of day 28, the snail is at 27 feet (since at the end of day 27, it was at 27 feet).
+    
+    During day 28, it climbs 3 feet: 27 + 3 = 30 feet, reaching the top.
+    
+    ### Checking for Errors
+    Wait a minute, let me think again about the position at the start of day n.
+    
+    At the end of day n (after night), the snail is at n feet.
+    
+    So, at the start of day n, the snail is at (n-1) feet.
+    
+    We want (n-1) + 3 >= 30 => n-1 >= 27 => n >= 28.
+    
+    So, on day 28, start at 27, climb to 30.
+    
+    This seems correct.
+    
+    But earlier, I thought after 27 full days, it's at 27 feet at the end of day 27 (after night), so start of day 28 is 27 feet.
+    
+    Yes, that checks out.
+    
+    ###
+
+  [v2_09] [Hard] Percentage and Proportion Trap
+  Question        : A shop increases its price by 25% on Monday. On Tuesday it decreases the new price by 25%. On Wednesday it increases the Tuesday price by 25% again. On Thursday it decreases the Wednesday price by 25%. If the original price was $100, what is the final price on Thursday? Show all steps.
+  Correct Answer  : 87.89
+  Trap            : Models think +25% -25% cancels out. It doesn't. Each cycle: 100 * 1.25 * 0.75 = 93.75. Two cycles: 100 * (1.25*0.75)² = 100 * 0.9375² = 87.89.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_recovered
+  Signal Words    : 'careful' @word7
+  Recovery At     : 1.5% through response
+  Latency/Tokens  : 11894.9ms | 1176 tokens
+  Response:
+    Let's solve this problem step by step, carefully tracking the price changes each day. We'll start with the original price and apply each percentage change in sequence.
+    
+    ### Given:
+    - Original price (Sunday): **$100**
+    
+    ---
+    
+    ### **Monday: Increase by 25%**
+    A 25% increase means the new price is the original price plus 25% of the original price.
+    
+    1. Calculate 25% of $100:
+       \( 25\% \times 100 = 0.25 \times 100 = 25 \)
+    
+    2. Add this to the original price:
+       \( 100 + 25 = 125 \)
+    
+    **Price on Monday: $125**
+    
+    ---
+    
+    ### **Tuesday: Decrease by 25%**
+    Now, we decrease the Monday price ($125) by 25%. This means we subtract 25% of $125 from $125.
+    
+    1. Calculate 25% of $125:
+       \( 25\% \times 125 = 0.25 \times 125 = 31.25 \)
+    
+    2. Subtract this from the Monday price:
+       \( 125 - 31.25 = 93.75 \)
+    
+    **Price on Tuesday: $93.75**
+    
+    ---
+    
+    ### **Wednesday: Increase by 25%**
+    Now, we increase the Tuesday price ($93.75) by 25%.
+    
+    1. Calculate 25% of $93.75:
+       \( 25\% \times 93.75 = 0.25 \times 93.75 = 23.4375 \)
+    
+    2. Add this to the Tuesday price:
+       \( 93.75 + 23.4375 = 117.1875 \)
+    
+    **Price on Wednesday: $117.1875**
+    (We can round this to $117.19 for practical purposes, but we'll keep the exact value for now.)
+    
+    ---
+    
+    ### **Thursday: Decrease by 25%**
+    Finally, we decrease the Wednesday price ($117.1875) by 25%.
+    
+    1. Calculate 25% of $117.1875:
+       \( 25\% \times 117.1875 = 0.25 \times 117.1875 = 29.296875 \)
+    
+    2. Subtract this from the Wednesday price:
+       \( 117.1875 - 29.296875 = 87.890625 \)
+    
+    **Price on Thursday: $87.890625**
+    Rounding to two decimal places (cents), this is **$87.89**.
+    
+    ---
+    
+    ### Verification:
+    Let me verify the calculations to ensure no mistakes were made.
+    
+    1. Monday: \( 100 \times 1.25 = 125 \) ✅
+    2. Tuesday: \( 125 \times 0.75 = 93.75 \) ✅
+    3. Wednesday: \( 93.75 \times 1.25 = 117.1875 \) ✅
+    4. Thursday: \( 117.1875 \times 0.75 = 87.890625 \) ✅
+    
+    Everything checks out!
+    
+    ---
+    
+    ### Final Answer:
+    The final price on Thursday is **$87.89** (rounded to the nearest cent).
+    
+    ---
+    
+    ### Key Observation:
+    Notice that the final price ($87.89) is not the same as the original price ($100). This is because percentage increases and decreases are not symmetric when applied sequentially. A 25% increase followed by a 25% decrease does not return you to the original price. The net effect is a decrease in this case.
+    
+    To see this mathematically:
+    - Net multiplier for Monday and Tuesday: \( 1.25 \times 0.75 = 0.9375 \) (a 6.25% decrease overall).
+    - Similarly, Wednesday and Thursday: \( 1.25 \times 0.75 = 0.9375 \).
+    - Combined effect: \( 100 \times 0.9375 \times 0.9375 = 100 \times 0.87890625 = 87.890625 \).
+    
+    Thus, the final price is indeed **$87.89**.
+
+  [v2_10] [Hard] Percentage and Proportion Trap
+  Question        : In a room, 70% of people are wearing hats. Of those wearing hats, 40% are also wearing glasses. Of those NOT wearing hats, 80% are wearing glasses. What percentage of the total people in the room are wearing glasses? Show your working.
+  Correct Answer  : 52
+  Trap            : Models average the percentages: (40+80)/2 = 60%. Wrong. Need to weight by proportion: 0.7*0.4 + 0.3*0.8 = 0.28 + 0.24 = 0.52 = 52%.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 5585.8ms | 646 tokens
+  Response:
+    Let's solve this problem step by step. I'll start by defining some variables and then proceed to calculate the required percentage.
+    
+    ### Step 1: Define Variables
+    Let’s assume there are **100 people** in the room for simplicity. This makes percentages easy to work with since they directly translate to numbers.
+    
+    - Total people in the room = 100.
+    
+    ### Step 2: People Wearing Hats
+    - 70% of people are wearing hats.
+      - Number of people wearing hats = 70% of 100 = 70.
+    
+    - Of those wearing hats, 40% are also wearing glasses.
+      - Number of people wearing both hats and glasses = 40% of 70 = 0.40 * 70 = 28.
+    
+    ### Step 3: People Not Wearing Hats
+    - The remaining 30% of people are not wearing hats (since 100% - 70% = 30%).
+      - Number of people not wearing hats = 30% of 100 = 30.
+    
+    - Of those not wearing hats, 80% are wearing glasses.
+      - Number of people not wearing hats but wearing glasses = 80% of 30 = 0.80 * 30 = 24.
+    
+    ### Step 4: Total People Wearing Glasses
+    Now, we sum up the people wearing glasses from both groups:
+    - People wearing both hats and glasses = 28.
+    - People not wearing hats but wearing glasses = 24.
+    
+    Total people wearing glasses = 28 + 24 = 52.
+    
+    ### Step 5: Percentage of Total People Wearing Glasses
+    Since we assumed 100 people in the room, the percentage of people wearing glasses is simply the total number wearing glasses, which is 52%.
+    
+    ### Verification
+    Let me double-check the calculations to ensure no mistakes were made:
+    1. Total people = 100.
+    2. Wearing hats = 70.
+       - Wearing hats and glasses = 40% of 70 = 28.
+    3. Not wearing hats = 30.
+       - Not wearing hats but wearing glasses = 80% of 30 = 24.
+    4. Total wearing glasses = 28 + 24 = 52.
+    
+    Everything checks out!
+    
+    ### Final Answer
+    **52% of the total people in the room are wearing glasses.**
+
+  [v2_11] [Medium] Language and Logic Trap
+  Question        : A box contains red and blue marbles. The ratio of red to blue is 3:2. If 10 red marbles are removed, the ratio becomes 1:2. How many blue marbles are in the box? Show your working.
+  Correct Answer  : 10
+  Trap            : Models set up wrong equation. Let red=3x, blue=2x. After removal: (3x-10)/(2x) = 1/2. Cross multiply: 6x-20=2x. 4x=20. x=5. Red=15, Blue=10. But check: (15-10)/10 = 5/10 = 1/2 ✓
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 5918.2ms | 601 tokens
+  Response:
+    Let's solve this problem step by step.
+    
+    ### **Step 1: Define Variables**
+    Let the number of red marbles be \( R \) and the number of blue marbles be \( B \).
+    
+    ### **Step 2: Use the Given Ratio**
+    The initial ratio of red to blue marbles is \( 3:2 \). This means:
+    \[
+    \frac{R}{B} = \frac{3}{2}
+    \]
+    Cross-multiplying gives:
+    \[
+    2R = 3B \quad \text{(Equation 1)}
+    \]
+    
+    ### **Step 3: Apply the Change in Ratio**
+    When 10 red marbles are removed, the new number of red marbles is \( R - 10 \). The new ratio of red to blue marbles is \( 1:2 \), so:
+    \[
+    \frac{R - 10}{B} = \frac{1}{2}
+    \]
+    Cross-multiplying gives:
+    \[
+    2(R - 10) = B \quad \text{(Equation 2)}
+    \]
+    
+    ### **Step 4: Solve the System of Equations**
+    From **Equation 1**, we have:
+    \[
+    R = \frac{3B}{2}
+    \]
+    
+    Substitute \( R \) into **Equation 2**:
+    \[
+    2\left(\frac{3B}{2} - 10\right) = B
+    \]
+    Simplify:
+    \[
+    3B - 20 = B
+    \]
+    Subtract \( B \) from both sides:
+    \[
+    2B - 20 = 0
+    \]
+    Add 20 to both sides:
+    \[
+    2B = 20
+    \]
+    Divide by 2:
+    \[
+    B = 10
+    \]
+    
+    ### **Step 5: Verify the Solution**
+    If \( B = 10 \), then from **Equation 1**:
+    \[
+    R = \frac{3 \times 10}{2} = 15
+    \]
+    
+    After removing 10 red marbles:
+    \[
+    R - 10 = 5
+    \]
+    The new ratio is:
+    \[
+    \frac{5}{10} = \frac{1}{2}
+    \]
+    This matches the given condition, so the solution is correct.
+    
+    ### **Final Answer**
+    There are **10 blue marbles** in the box.
+
+  [v2_12] [Hard] Language and Logic Trap
+  Question        : Every student in a class passed at least one of two exams: Maths or English. 13 students passed Maths. 11 students passed English. 4 students passed both. How many students are in the class? Now — if one more student joins who failed BOTH exams, what fraction of the class passed at least one exam? Show all working.
+  Correct Answer  : 20/21
+  Trap            : Two-part problem. Part 1: 13+11-4=20 students. Part 2: models forget to add the new student to total — they keep 20 as denominator. Correct: 20/(20+1) = 20/21.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 5725.8ms | 666 tokens
+  Response:
+    Let's solve this problem step by step.
+    
+    ---
+    
+    ### **Part 1: How many students are in the class?**
+    
+    We are given:
+    - Total students who passed Maths (M) = 13
+    - Total students who passed English (E) = 11
+    - Students who passed both Maths and English (M ∩ E) = 4
+    - Every student passed at least one of the two exams (so no student failed both).
+    
+    We want to find the total number of students in the class (let's call this **N**).
+    
+    #### Step 1: Use the principle of inclusion-exclusion
+    The principle of inclusion-exclusion for two sets states:
+    \[ |M \cup E| = |M| + |E| - |M \cap E| \]
+    
+    Where:
+    - \( |M \cup E| \) is the number of students who passed at least one exam (which is all students in this case, so \( |M \cup E| = N \)).
+    - \( |M| = 13 \)
+    - \( |E| = 11 \)
+    - \( |M \cap E| = 4 \)
+    
+    #### Step 2: Plug in the values
+    \[ N = 13 + 11 - 4 \]
+    \[ N = 24 - 4 \]
+    \[ N = 20 \]
+    
+    So, there are **20 students** in the class.
+    
+    ---
+    
+    ### **Part 2: Fraction of the class passing at least one exam after one more student joins who failed both**
+    
+    Now, a new student joins who failed both exams. This means:
+    - The new student did not pass Maths or English.
+    - The total number of students in the class now becomes \( N + 1 = 20 + 1 = 21 \).
+    
+    #### Step 1: Determine how many students passed at least one exam
+    Originally, all 20 students passed at least one exam. The new student failed both, so the number of students who passed at least one exam remains **20** (unchanged).
+    
+    #### Step 2: Calculate the fraction
+    The fraction of the class that passed at least one exam is:
+    \[ \frac{\text{Number of students who passed at least one exam}}{\text{Total number of students}} \]
+    \[ = \frac{20}{21} \]
+    
+    ---
+    
+    ### **Final Answers:**
+    1. The original class has **20 students**.
+    2. After the new student joins, the fraction of the class that passed at least one exam is **20/21**.
+
+  [v2_13] [Medium] Spatial Reasoning Trap
+  Question        : A cube has a surface area of 150 square centimetres. What is the length of its diagonal from one corner to the opposite corner? Round to 2 decimal places. Show your working.
+  Correct Answer  : 8.66
+  Trap            : Models often calculate edge diagonal (√2 × side) instead of space diagonal (√3 × side). Surface area = 6s² = 150, so s²=25, s=5. Space diagonal = 5√3 = 8.66.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 4981.1ms | 639 tokens
+  Response:
+    Let's solve this problem step by step.
+    
+    ### **Step 1: Understand the given information**
+    We are given:
+    - A cube with a **surface area of 150 square centimetres**.
+    
+    We need to find:
+    - The **length of the space diagonal** (the diagonal from one corner of the cube to the opposite corner).
+    
+    ---
+    
+    ### **Step 2: Recall relevant formulas**
+    1. **Surface area of a cube**:
+       A cube has 6 identical square faces. If the length of one edge of the cube is \( s \), then the surface area \( A \) is:
+       \[
+       A = 6s^2
+       \]
+    
+    2. **Space diagonal of a cube**:
+       The space diagonal \( d \) (the longest diagonal that runs from one corner of the cube to the opposite corner) is given by:
+       \[
+       d = s\sqrt{3}
+       \]
+       This comes from the Pythagorean theorem applied in three dimensions.
+    
+    ---
+    
+    ### **Step 3: Find the edge length \( s \)**
+    Given the surface area \( A = 150 \) cm², we can solve for \( s \):
+    \[
+    6s^2 = 150
+    \]
+    Divide both sides by 6:
+    \[
+    s^2 = \frac{150}{6} = 25
+    \]
+    Take the square root of both sides:
+    \[
+    s = \sqrt{25} = 5 \text{ cm}
+    \]
+    
+    **Check:** \( 6 \times 5^2 = 6 \times 25 = 150 \) cm². This matches the given surface area, so our calculation for \( s \) is correct.
+    
+    ---
+    
+    ### **Step 4: Calculate the space diagonal \( d \)**
+    Now that we know \( s = 5 \) cm, we can find the space diagonal:
+    \[
+    d = s\sqrt{3} = 5\sqrt{3}
+    \]
+    
+    Calculate the numerical value of \( \sqrt{3} \approx 1.73205 \):
+    \[
+    d \approx 5 \times 1.73205 = 8.66025 \text{ cm}
+    \]
+    
+    ---
+    
+    ### **Step 5: Round to 2 decimal places**
+    Rounding 8.66025 to 2 decimal places:
+    \[
+    d \approx 8.66 \text{ cm}
+    \]
+    
+    ---
+    
+    ### **Final Answer**
+    The length of the diagonal from one corner to the opposite corner is **8.66 cm**.
+
+  [v2_14] [Medium] Spatial Reasoning Trap
+  Question        : You fold a piece of paper in half 7 times. The original paper is 0.1mm thick. How thick is the folded paper in centimetres? Show your calculations.
+  Correct Answer  : 1.28
+  Trap            : Models calculate 0.1 × 7 = 0.7mm (linear) instead of 0.1 × 2^7 = 12.8mm = 1.28cm (exponential).
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_no_trap
+  Latency/Tokens  : 5735.3ms | 723 tokens
+  Response:
+    Let's solve this problem step by step.
+    
+    ### Understanding the Problem
+    We start with a piece of paper that is **0.1 mm thick**. Folding it in half **7 times** means we are doubling its thickness with each fold. We need to calculate the final thickness after 7 folds and then convert it to centimeters.
+    
+    ---
+    
+    ### Step 1: Initial Thickness
+    The original thickness of the paper is:
+    \[ \text{Initial thickness} = 0.1 \, \text{mm} \]
+    
+    ---
+    
+    ### Step 2: Effect of Each Fold
+    Each time you fold the paper in half, you double its thickness. This is because you are stacking two layers of paper on top of each other.
+    
+    So, after:
+    - **1 fold**: thickness = \( 0.1 \times 2 = 0.2 \, \text{mm} \)
+    - **2 folds**: thickness = \( 0.2 \times 2 = 0.4 \, \text{mm} \)
+    - ...
+    - **n folds**: thickness = \( 0.1 \times 2^n \, \text{mm} \)
+    
+    ---
+    
+    ### Step 3: Calculate Thickness After 7 Folds
+    Using the formula from Step 2, after 7 folds:
+    \[
+    \text{Thickness} = 0.1 \times 2^7 \, \text{mm}
+    \]
+    
+    Calculate \( 2^7 \):
+    \[
+    2^7 = 2 \times 2 \times 2 \times 2 \times 2 \times 2 \times 2 = 128
+    \]
+    
+    Now multiply by the initial thickness:
+    \[
+    \text{Thickness} = 0.1 \times 128 = 12.8 \, \text{mm}
+    \]
+    
+    ---
+    
+    ### Step 4: Convert Millimeters to Centimeters
+    We know that:
+    \[
+    1 \, \text{cm} = 10 \, \text{mm}
+    \]
+    
+    So, to convert 12.8 mm to cm:
+    \[
+    12.8 \, \text{mm} = \frac{12.8}{10} \, \text{cm} = 1.28 \, \text{cm}
+    \]
+    
+    ---
+    
+    ### Verification of Assumptions
+    1. **Folding in Half**: Each fold doubles the thickness. This assumes perfect folding with no overlap or gaps, which is a reasonable assumption for this problem.
+    2. **Initial Thickness**: The problem states the paper is 0.1 mm thick, so this is correct.
+    3. **Exponentiation**: \( 2^7 = 128 \) is correct.
+    4. **Unit Conversion**: 1 cm = 10 mm is correct, so 12.8 mm = 1.28 cm is correct.
+    
+    ---
+    
+    ### Final Answer
+    After folding the paper in half 7 times, the thickness is:
+    \[
+    \boxed{1.28 \, \text{cm}}
+    \]
+
+  [v2_15] [Hard] Overcomplexity Trap
+  Question        : A train leaves Station A at 9:00am travelling at 80 km/h toward Station B. Another train leaves Station B at 9:00am travelling at 120 km/h toward Station A. The distance between Station A and B is 500 km. A fly starts at Station A at 9:00am and flies back and forth between the two trains at 200 km/h until the trains collide. How far does the fly travel in total? Show your reasoning.
+  Correct Answer  : 500
+  Trap            : Models attempt to calculate each leg of the fly's journey (infinite series). The trick is: trains close at 200km/h combined speed, meet in 500/200 = 2.5 hours. Fly travels 200 × 2.5 = 500km.
+  Result          : ✓ CORRECT
+  Recovery Type   : correct_recovered
+  Signal Words    : 'careful' @word579
+  Recovery At     : 93.1% through response
+  Latency/Tokens  : 8322.8ms | 1058 tokens
+  Response:
+    Alright, let's tackle this problem step by step. I'll start by understanding what's given and what's being asked.
+    
+    ### Understanding the Problem
+    
+    We have two stations, A and B, which are 500 km apart.
+    
+    1. **Train from A**: Leaves at 9:00 am, travels towards B at 80 km/h.
+    2. **Train from B**: Leaves at 9:00 am, travels towards A at 120 km/h.
+    3. **Fly**: Starts at Station A at 9:00 am, flies back and forth between the two trains at 200 km/h until the trains collide.
+    
+    **Question**: How far does the fly travel in total before the trains collide?
+    
+    ### Breaking Down the Problem
+    
+    First, let's think about the movement of the trains and when they will collide. The fly is continuously flying back and forth between the two trains until they meet. Calculating each individual trip the fly makes would be complex because there are infinitely many trips (the fly keeps flying back and forth as the trains get closer).
+    
+    Instead, a smarter approach is to calculate the time until the trains collide and then determine how far the fly travels in that time at its constant speed.
+    
+    ### Calculating the Time Until Collision
+    
+    Both trains start at the same time and move towards each other.
+    
+    - Speed of Train A: 80 km/h (towards B)
+    - Speed of Train B: 120 km/h (towards A)
+    
+    When two objects move towards each other, their relative speed is the sum of their individual speeds.
+    
+    Relative speed = Speed of Train A + Speed of Train B = 80 km/h + 120 km/h = 200 km/h
+    
+    The initial distance between them is 500 km.
+    
+    Time until collision = Total distance / Relative speed = 500 km / 200 km/h = 2.5 hours
+    
+    So, the trains will collide 2.5 hours after 9:00 am, which is at 11:30 am.
+    
+    ### Calculating the Distance the Fly Travels
+    
+    The fly starts at 9:00 am and flies continuously at 200 km/h until the collision at 11:30 am, which is 2.5 hours later.
+    
+    Distance traveled by the fly = Speed of fly × Time = 200 km/h × 2.5 h = 500 km
+    
+    ### Verifying the Approach
+    
+    Initially, one might think to calculate each segment of the fly's journey (from Train A to Train B, then back, etc.), summing up all these distances. However, this would involve an infinite series because the fly keeps flying back and forth as the trains get closer.
+    
+    The clever insight here is that the total distance the fly travels depends only on its speed and the total time it's flying. Since the fly is flying continuously at a constant speed until the collision, we can directly calculate the total distance by multiplying its speed by the total time until collision.
+    
+    This method avoids the complexity of summing an infinite series, which would be mathematically more involved but would ultimately yield the same result.
+    
+    ### Potential Missteps
+    
+    1. **Incorrect Relative Speed**: One might mistakenly subtract the speeds if not recognizing that the trains are moving towards each other. Adding the speeds is correct here.
+    
+       - Wrong: 120 km/h - 80 km/h = 40 km/h
+       - Correct: 80 km/h + 120 km/h = 200 km/h
+    
+    2. **Time Calculation**: Ensuring that the time is calculated correctly as distance divided by relative speed is crucial.
+    
+    3. **Fly's Distance**: Forgetting that the fly is flying continuously for the entire duration until collision and thus its total distance is speed multiplied by total time.
+    
+    ### Final Answer
+    
+    After carefully working through the problem:
+    
+    - Time until collision: 2.5 hours
+    - Fly's speed: 200 km/h
+    - Total distance flown by the fly: 200 km/h × 2.5 h = **500 kilometers**
+    
+    **The fly travels a total of 500 kilometers before the trains collide.**
+
+========================================================================
+  END OF REPORT
+========================================================================
